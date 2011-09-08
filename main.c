@@ -108,7 +108,10 @@ int main(void)
     char *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf = alloc_four_nonaliased_buffers(&srcbuf, SIZE, &dstbuf, SIZE,
                                                   &tmpbuf, BLOCKSIZE, NULL, 0);
-    printf("\n== Memory bandwidth tests (non-aliased buffers) ===\n\n");
+    printf("\n");
+    printf("===================================================\n");
+    printf("== Memory bandwidth tests (non-aliased buffers) ===\n");
+    printf("===================================================\n\n");
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, "    ");
     free(poolbuf);
 
@@ -118,7 +121,12 @@ int main(void)
     memset(srcbuf, 0xCC, SIZE);
     memset(dstbuf, 0xCC, SIZE);
     memset(tmpbuf, 0xCC, BLOCKSIZE);
-    printf("\n== Memory bandwidth tests (normal, potentially aliased buffers) ===\n\n");
+    printf("\n");
+    printf("===================================================================\n");
+    printf("== Memory bandwidth tests (normal, potentially aliased buffers) ===\n");
+    printf("== WARNING: the results below are likely bogus, especially if   ===\n");
+    printf("==          obtained on a freshly rebooted system               ===\n");
+    printf("===================================================================\n\n");
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, "    ");
     free(srcbuf);
     free(dstbuf);
