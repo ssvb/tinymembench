@@ -128,6 +128,75 @@ void bandwidth_bench(void *dstbuf, void *srcbuf, void *tmpbuf, int size,
         (double)size * COUNT / t7 / 1000000.);
 }
 
+static void __attribute__((noinline)) random_test(char *zerobuffer,
+                                                  int count, int nbits)
+{
+    uint32_t seed = 0;
+    uintptr_t addrmask = (1 << nbits) - 1;
+    uint32_t v;
+    static volatile uint32_t dummy;
+
+    #define RANDOM_MEM_ACCESS()                 \
+        seed = seed * 1103515245 + 12345;       \
+        v = (seed >> 16) & 0xFF;                \
+        seed = seed * 1103515245 + 12345;       \
+        v |= ((seed >> 16) & 0xFF) << 8;        \
+        seed = seed * 1103515245 + 12345;       \
+        v |= ((seed >> 16) & 0x7FFF) << 16;     \
+        seed |= zerobuffer[v & addrmask];
+
+    while (count > 16) {
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        count -= 16;
+    }
+    while (count-- > 0) {
+        RANDOM_MEM_ACCESS();
+    }
+    dummy = seed;
+}
+
+void latency_bench(int size, int count)
+{
+    double t, t_before, t_after, t_noaccess;
+    int nbits;
+    char *buffer;
+    if (posix_memalign((void **)&buffer, 4096, size) != 0)
+        return;
+    memset(buffer, 0, size);
+
+    t_before = gettime();
+    random_test(buffer, count, 1);
+    t_after = gettime();
+    t_noaccess = t_after - t_before;
+
+    printf("block size : random access time\n");
+    for (nbits = 1; (1 << nbits) <= size; nbits++)
+    {
+        t_before = gettime();
+        random_test(buffer, count, nbits);
+        t_after = gettime();
+        t = t_after - t_before - t_noaccess;
+        if (t < 0) t = 0;
+        printf("%10d : %-3.1f ns\n", (1 << nbits), t * 1000000000. / count);
+    }
+    free(buffer);
+}
+
 int main(void)
 {
     int dummy;
@@ -157,6 +226,13 @@ int main(void)
     free(srcbuf);
     free(dstbuf);
     free(tmpbuf);
+
+    printf("\n");
+    printf("==========================\n");
+    printf("== Memory latency test ===\n");
+    printf("==========================\n\n");
+
+    latency_bench(SIZE * 4, 10000000);
 
     return 0;
 }
