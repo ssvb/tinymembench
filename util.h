@@ -41,6 +41,9 @@ void aligned_block_copy(int64_t * __restrict dst,
                         int64_t * __restrict src,
                         int                  size);
 
+void aligned_block_fill(int64_t * __restrict dst,
+                        int64_t * __restrict src,
+                        int                  size);
 
 void *alloc_four_nonaliased_buffers(char **buf1, int size1,
                                     char **buf2, int size2,

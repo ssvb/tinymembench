@@ -70,6 +70,20 @@ void aligned_block_copy(int64_t * __restrict dst,
     }
 }
 
+void aligned_block_fill(int64_t * __restrict dst,
+                        int64_t * __restrict src,
+                        int                  size)
+{
+    int64_t data = *src;
+    while ((size -= 32) >= 0)
+    {
+        *dst++ = data;
+        *dst++ = data;
+        *dst++ = data;
+        *dst++ = data;
+    }
+}
+
 double gettime(void)
 {
     struct timeval tv;

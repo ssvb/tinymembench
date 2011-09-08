@@ -38,7 +38,7 @@ void bandwidth_bench(void *dstbuf, void *srcbuf, void *tmpbuf, int size,
                      int blocksize, char *indent_prefix)
 {
     int i, j;
-    double t1, t2, t3, t4, tx;
+    double t1, t2, t3, t4, t5, t6, t7, tx;
 
     aligned_block_copy_backwards_noprefetch(dstbuf, srcbuf, size);
     tx = gettime();
@@ -86,6 +86,27 @@ void bandwidth_bench(void *dstbuf, void *srcbuf, void *tmpbuf, int size,
     }
     t4 = gettime() - t4;
 
+    t5 = gettime();
+    for (i = 0; i < COUNT; i++)
+    {
+        aligned_block_fill(dstbuf, srcbuf, size);
+    }
+    t5 = gettime() - t5;
+
+    t6 = gettime();
+    for (i = 0; i < COUNT; i++)
+    {
+        memcpy(dstbuf, srcbuf, size);
+    }
+    t6 = gettime() - t6;
+
+    t7 = gettime();
+    for (i = 0; i < COUNT; i++)
+    {
+        memset(dstbuf, ((char *)srcbuf)[0], size);
+    }
+    t7 = gettime() - t7;
+
     printf("%sdirect copy backwards:          %.3f MB/s\n", indent_prefix,
         (double)size * COUNT / tx / 1000000.);
     printf("%s---\n", indent_prefix);
@@ -98,8 +119,13 @@ void bandwidth_bench(void *dstbuf, void *srcbuf, void *tmpbuf, int size,
     printf("%scopy via tmp buffer prefetched: %.3f MB/s\n", indent_prefix,
         (double)size * COUNT / t4 / 1000000.);
     printf("%s---\n", indent_prefix);
-    printf("%stmp buffer use slowdown ratio:  %.2fx\n", indent_prefix,
-        fmin(t3, t4) / fmin(t1, t2));
+    printf("%swrite (fill):                   %.3f MB/s\n", indent_prefix,
+        (double)size * COUNT / t5 / 1000000.);
+    printf("%s---\n", indent_prefix);
+    printf("%sstdandard memcpy:               %.3f MB/s\n", indent_prefix,
+        (double)size * COUNT / t6 / 1000000.);
+    printf("%sstdandard memset:               %.3f MB/s\n", indent_prefix,
+        (double)size * COUNT / t7 / 1000000.);
 }
 
 int main(void)
