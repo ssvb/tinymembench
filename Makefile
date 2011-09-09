@@ -11,5 +11,5 @@ util.o: util.c util.h
 	${CC} -O2 ${CFLAGS} -c util.c
 
 clean:
-	rm ssvb-membench
-	rm *.o
+	-rm ssvb-membench
+	-rm *.o
