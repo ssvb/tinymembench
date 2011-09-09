@@ -34,98 +34,97 @@
 #define BLOCKSIZE        2048
 #define COUNT            64
 
-void bandwidth_bench(void *dstbuf, void *srcbuf, void *tmpbuf, int size,
-                     int blocksize, char *indent_prefix)
+static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
+                                     int64_t *tmpbuf,
+                                     int size, int blocksize,
+                                     const char *indent_prefix,
+                                     int use_tmpbuf,
+                                     void (*f)(int64_t *, int64_t *, int),
+                                     const char *description)
 {
     int i, j;
-    double t1, t2, t3, t4, t5, t6, t7, tx;
-
-    aligned_block_copy_backwards_noprefetch(dstbuf, srcbuf, size);
-    tx = gettime();
-    for (i = 0; i < COUNT; i++)
+    double t;
+    f(dstbuf, srcbuf, size);
+    t = gettime();
+    if (use_tmpbuf)
     {
-        aligned_block_copy_backwards_noprefetch(dstbuf, srcbuf, size);
-    }
-    tx = gettime() - tx;
-
-    aligned_block_copy_noprefetch(dstbuf, srcbuf, size);
-    t1 = gettime();
-    for (i = 0; i < COUNT; i++)
-    {
-        aligned_block_copy_noprefetch(dstbuf, srcbuf, size);
-    }
-    t1 = gettime() - t1;
-
-    aligned_block_copy(dstbuf, srcbuf, size);
-    t2 = gettime();
-    for (i = 0; i < COUNT; i++)
-    {
-        aligned_block_copy(dstbuf, srcbuf, size);
-    }
-    t2 = gettime() - t2;
-
-    t3 = gettime();
-    for (i = 0; i < COUNT; i++)
-    {
-        for (j = 0; j < size; j += blocksize)
+        for (i = 0; i < COUNT; i++)
         {
-            aligned_block_copy_noprefetch(tmpbuf, srcbuf + j, blocksize);
-            aligned_block_copy_noprefetch(dstbuf + j, tmpbuf, blocksize);
+            for (j = 0; j < size; j += blocksize)
+            {
+                f(tmpbuf, srcbuf + j / sizeof(int64_t), blocksize);
+                f(dstbuf + j / sizeof(int64_t), tmpbuf, blocksize);
+            }
         }
     }
-    t3 = gettime() - t3;
-
-    t4 = gettime();
-    for (i = 0; i < COUNT; i++)
+    else
     {
-        for (j = 0; j < size; j += blocksize)
+        for (i = 0; i < COUNT; i++)
         {
-            aligned_block_copy(tmpbuf, srcbuf + j, blocksize);
-            aligned_block_copy(dstbuf + j, tmpbuf, blocksize);
+            f(dstbuf, srcbuf, size);
         }
     }
-    t4 = gettime() - t4;
+    t = gettime() - t;
+    printf("%s%-50s : %.3f MB/s\n", indent_prefix, description,
+        (double)size * COUNT / t / 1000000.);
+    return t;
+}
 
-    t5 = gettime();
-    for (i = 0; i < COUNT; i++)
-    {
-        aligned_block_fill(dstbuf, srcbuf, size);
-    }
-    t5 = gettime() - t5;
+void memcpy_wrapper(int64_t *dst, int64_t *src, int size)
+{
+    memcpy(dst, src, size);
+}
 
-    t6 = gettime();
-    for (i = 0; i < COUNT; i++)
-    {
-        memcpy(dstbuf, srcbuf, size);
-    }
-    t6 = gettime() - t6;
+void memset_wrapper(int64_t *dst, int64_t *src, int size)
+{
+    memset(dst, src[0], size);
+}
 
-    t7 = gettime();
-    for (i = 0; i < COUNT; i++)
-    {
-        memset(dstbuf, ((char *)srcbuf)[0], size);
-    }
-    t7 = gettime() - t7;
-
-    printf("%sdirect copy backwards:          %.3f MB/s\n", indent_prefix,
-        (double)size * COUNT / tx / 1000000.);
+void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
+                     int size, int blocksize, const char *indent_prefix)
+{
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           aligned_block_copy_backwards,
+                           "direct copy backwards");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           aligned_block_copy,
+                           "direct copy");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           aligned_block_copy_pf32,
+                           "direct copy prefetched (once per 32 bytes)");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           aligned_block_copy_pf64,
+                           "direct copy prefetched (once per 64 bytes)");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 1,
+                           aligned_block_copy,
+                           "copy via tmp buffer");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 1,
+                           aligned_block_copy_pf32,
+                           "copy via tmp buffer prefetched (once per 32 bytes)");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 1,
+                           aligned_block_copy_pf64,
+                           "copy via tmp buffer prefetched (once per 64 bytes)");
     printf("%s---\n", indent_prefix);
-    printf("%sdirect copy:                    %.3f MB/s\n", indent_prefix,
-        (double)size * COUNT / t1 / 1000000.);
-    printf("%sdirect copy prefetched:         %.3f MB/s\n", indent_prefix,
-        (double)size * COUNT / t2 / 1000000.);
-    printf("%scopy via tmp buffer:            %.3f MB/s\n", indent_prefix,
-        (double)size * COUNT / t3 / 1000000.);
-    printf("%scopy via tmp buffer prefetched: %.3f MB/s\n", indent_prefix,
-        (double)size * COUNT / t4 / 1000000.);
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 1,
+                           aligned_block_fill,
+                           "write");
     printf("%s---\n", indent_prefix);
-    printf("%swrite (fill):                   %.3f MB/s\n", indent_prefix,
-        (double)size * COUNT / t5 / 1000000.);
-    printf("%s---\n", indent_prefix);
-    printf("%sstdandard memcpy:               %.3f MB/s\n", indent_prefix,
-        (double)size * COUNT / t6 / 1000000.);
-    printf("%sstdandard memset:               %.3f MB/s\n", indent_prefix,
-        (double)size * COUNT / t7 / 1000000.);
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           memcpy_wrapper,
+                           "standard memcpy");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           memset_wrapper,
+                           "standard memset");
 }
 
 static void __attribute__((noinline)) random_test(char *zerobuffer,
@@ -200,9 +199,11 @@ void latency_bench(int size, int count)
 int main(void)
 {
     int dummy;
-    char *srcbuf, *dstbuf, *tmpbuf;
-    void *poolbuf = alloc_four_nonaliased_buffers(&srcbuf, SIZE, &dstbuf, SIZE,
-                                                  &tmpbuf, BLOCKSIZE, NULL, 0);
+    int64_t *srcbuf, *dstbuf, *tmpbuf;
+    void *poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, SIZE,
+                                                  (void **)&dstbuf, SIZE,
+                                                  (void **)&tmpbuf, BLOCKSIZE,
+                                                  NULL, 0);
     printf("\n");
     printf("===================================================\n");
     printf("== Memory bandwidth tests (non-aliased buffers) ===\n");

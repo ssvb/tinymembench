@@ -29,25 +29,28 @@
 double gettime(void);
 double fmin(double, double);
 
-void aligned_block_copy_noprefetch(int64_t * __restrict dst,
-                                   int64_t * __restrict src,
-                                   int                  size);
-
-void aligned_block_copy_backwards_noprefetch(int64_t * __restrict dst,
-                                             int64_t * __restrict src,
-                                             int                  size);
-
 void aligned_block_copy(int64_t * __restrict dst,
                         int64_t * __restrict src,
                         int                  size);
+
+void aligned_block_copy_backwards(int64_t * __restrict dst,
+                                  int64_t * __restrict src,
+                                  int                  size);
+
+void aligned_block_copy_pf32(int64_t * __restrict dst,
+                             int64_t * __restrict src,
+                             int                  size);
+void aligned_block_copy_pf64(int64_t * __restrict dst,
+                             int64_t * __restrict src,
+                             int                  size);
 
 void aligned_block_fill(int64_t * __restrict dst,
                         int64_t * __restrict src,
                         int                  size);
 
-void *alloc_four_nonaliased_buffers(char **buf1, int size1,
-                                    char **buf2, int size2,
-                                    char **buf3, int size3,
-                                    char **buf4, int size4);
+void *alloc_four_nonaliased_buffers(void **buf1, int size1,
+                                    void **buf2, int size2,
+                                    void **buf3, int size3,
+                                    void **buf4, int size4);
 
 #endif

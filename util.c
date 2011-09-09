@@ -28,45 +28,113 @@
 
 #include "util.h"
 
-void aligned_block_copy_noprefetch(int64_t * __restrict dst,
-                                   int64_t * __restrict src,
-                                   int                  size)
-{
-    while ((size -= 32) >= 0)
-    {
-        *dst++ = *src++;
-        *dst++ = *src++;
-        *dst++ = *src++;
-        *dst++ = *src++;
-    }
-}
-
-void aligned_block_copy_backwards_noprefetch(int64_t * __restrict dst,
-                                             int64_t * __restrict src,
-                                             int                  size)
-{
-    src += size / 8 - 1;
-    dst += size / 8 - 1;
-    while ((size -= 32) >= 0)
-    {
-        *dst-- = *src--;
-        *dst-- = *src--;
-        *dst-- = *src--;
-        *dst-- = *src--;
-    }
-}
-
 void aligned_block_copy(int64_t * __restrict dst,
                         int64_t * __restrict src,
                         int                  size)
 {
-    while ((size -= 32) >= 0)
+    int64_t t1, t2, t3, t4;
+    while ((size -= 64) >= 0)
+    {
+        t1 = *src++;
+        t2 = *src++;
+        t3 = *src++;
+        t4 = *src++;
+        *dst++ = t1;
+        *dst++ = t2;
+        *dst++ = t3;
+        *dst++ = t4;
+        t1 = *src++;
+        t2 = *src++;
+        t3 = *src++;
+        t4 = *src++;
+        *dst++ = t1;
+        *dst++ = t2;
+        *dst++ = t3;
+        *dst++ = t4;
+    }
+}
+
+void aligned_block_copy_backwards(int64_t * __restrict dst,
+                                  int64_t * __restrict src,
+                                  int                  size)
+{
+    int64_t t1, t2, t3, t4;
+    src += size / 8 - 1;
+    dst += size / 8 - 1;
+    while ((size -= 64) >= 0)
+    {
+        t1 = *src--;
+        t2 = *src--;
+        t3 = *src--;
+        t4 = *src--;
+        *dst-- = t1;
+        *dst-- = t2;
+        *dst-- = t3;
+        *dst-- = t4;
+        t1 = *src--;
+        t2 = *src--;
+        t3 = *src--;
+        t4 = *src--;
+        *dst-- = t1;
+        *dst-- = t2;
+        *dst-- = t3;
+        *dst-- = t4;
+    }
+}
+
+void aligned_block_copy_pf32(int64_t * __restrict dst,
+                             int64_t * __restrict src,
+                             int                  size)
+{
+    int64_t t1, t2, t3, t4;
+    while ((size -= 64) >= 0)
     {
         __builtin_prefetch(src + 32, 0, 0);
-        *dst++ = *src++;
-        *dst++ = *src++;
-        *dst++ = *src++;
-        *dst++ = *src++;
+        t1 = *src++;
+        t2 = *src++;
+        t3 = *src++;
+        t4 = *src++;
+        *dst++ = t1;
+        *dst++ = t2;
+        *dst++ = t3;
+        *dst++ = t4;
+        __builtin_prefetch(src + 32, 0, 0);
+        t1 = *src++;
+        t2 = *src++;
+        t3 = *src++;
+        t4 = *src++;
+        *dst++ = t1;
+        *dst++ = t2;
+        *dst++ = t3;
+        *dst++ = t4;
+    }
+}
+
+void aligned_block_copy_pf64(int64_t * __restrict dst,
+                             int64_t * __restrict src,
+                             int                  size)
+{
+    int64_t t1, t2, t3, t4;
+    while ((size -= 64) >= 0)
+    {
+        __builtin_prefetch(src + 32, 0, 0);
+        t1 = *src++;
+        t2 = *src++;
+        t3 = *src++;
+        t4 = *src++;
+        *dst++ = t1;
+        *dst++ = t2;
+        *dst++ = t3;
+        *dst++ = t4;
+        __builtin_prefetch(src + 32, 0, 0);
+        t1 = *src++;
+        t2 = *src++;
+        t3 = *src++;
+        t4 = *src++;
+        *dst++ = t1;
+        *dst++ = t2;
+        *dst++ = t3;
+        *dst++ = t4;
     }
 }
 
@@ -75,8 +143,12 @@ void aligned_block_fill(int64_t * __restrict dst,
                         int                  size)
 {
     int64_t data = *src;
-    while ((size -= 32) >= 0)
+    while ((size -= 64) >= 0)
     {
+        *dst++ = data;
+        *dst++ = data;
+        *dst++ = data;
+        *dst++ = data;
         *dst++ = data;
         *dst++ = data;
         *dst++ = data;
@@ -104,11 +176,13 @@ static char *align_up(char *ptr, int align)
     return (char *)(((uintptr_t)ptr + align - 1) & ~(uintptr_t)(align - 1));
 }
 
-void *alloc_four_nonaliased_buffers(char **buf1, int size1,
-                                    char **buf2, int size2,
-                                    char **buf3, int size3,
-                                    char **buf4, int size4)
+void *alloc_four_nonaliased_buffers(void **buf1_, int size1,
+                                    void **buf2_, int size2,
+                                    void **buf3_, int size3,
+                                    void **buf4_, int size4)
 {
+    char **buf1 = (char **)buf1_, **buf2 = (char **)buf2_;
+    char **buf3 = (char **)buf3_, **buf4 = (char **)buf4_;
     int antialias_pattern_mask = (ALIGN_PADDING - 1) & ~(CACHE_LINE_SIZE - 1);
     char *buf, *ptr;
 
@@ -121,7 +195,8 @@ void *alloc_four_nonaliased_buffers(char **buf1, int size1,
     if (!buf4 || size4 < 0)
         size4 = 0;
 
-    ptr = buf = malloc(size1 + size2 + size3 + size4 + 9 * ALIGN_PADDING);
+    ptr = buf = 
+        (char *)malloc(size1 + size2 + size3 + size4 + 9 * ALIGN_PADDING);
     memset(buf, 0xCC, size1 + size2 + size3 + size4 + 9 * ALIGN_PADDING);
 
     ptr = align_up(ptr, ALIGN_PADDING);
