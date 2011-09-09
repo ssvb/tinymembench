@@ -120,7 +120,39 @@ int check_cpu_feature(const char *feature)
 
 static bench_info empty[] = { { NULL, 0, NULL } };
 
+#if defined(__i386__) || defined(__amd64__)
+
+#include "x86-sse2.h"
+
+static bench_info x86_sse2[] =
+{
+    { "sse2 copy", 0, aligned_block_copy_sse2 },
+    { "sse2 nontemporal copy", 0, aligned_block_copy_nt_sse2 },
+    { "sse2 copy prefetched (once per 32 bytes)", 0, aligned_block_copy_pf32_sse2 },
+    { "sse2 copy prefetched (once per 64 bytes)", 0, aligned_block_copy_pf64_sse2 },
+    { "sse2 nontemporal copy prefetched (once per 32 bytes)", 0, aligned_block_copy_nt_pf32_sse2 },
+    { "sse2 nontemporal copy prefetched (once per 64 bytes)", 0, aligned_block_copy_nt_pf64_sse2 },
+    { "sse2 copy via tmp buffer", 1, aligned_block_copy_sse2 },
+    { "sse2 copy via tmp buffer prefetched (once per 32 bytes)", 1, aligned_block_copy_pf32_sse2 },
+    { "sse2 copy via tmp buffer prefetched (once per 64 bytes)", 1, aligned_block_copy_pf64_sse2 },
+    { "sse2 fill", 0, aligned_block_fill_sse2 },
+    { "sse2 nontemporal fill", 0, aligned_block_fill_nt_sse2 },
+    { NULL, 0, NULL }
+};
+
+bench_info *get_asm_benchmarks(void)
+{
+    if (check_cpu_feature("sse2"))
+        return x86_sse2;
+    else
+        return empty;
+}
+
+#else
+
 bench_info *get_asm_benchmarks(void)
 {
     return empty;
 }
+
+#endif

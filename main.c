@@ -72,7 +72,7 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
     } while (t2 - t1 < 1.0);
     t = t2 - t1;
 
-    printf("%s%-50s : %.3f MB/s\n", indent_prefix, description,
+    printf("%s%-58s : %.3f MB/s\n", indent_prefix, description,
         (double)size * COUNT * loopcount / t / 1000000.);
     return t;
 }
