@@ -42,31 +42,37 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
                                      void (*f)(int64_t *, int64_t *, int),
                                      const char *description)
 {
-    int i, j;
-    double t;
+    int i, j, loopcount = 0;
+    double t1, t2, t;
     f(dstbuf, srcbuf, size);
-    t = gettime();
-    if (use_tmpbuf)
+    t1 = gettime();
+    do
     {
-        for (i = 0; i < COUNT; i++)
+        loopcount++;
+        if (use_tmpbuf)
         {
-            for (j = 0; j < size; j += blocksize)
+            for (i = 0; i < COUNT; i++)
             {
-                f(tmpbuf, srcbuf + j / sizeof(int64_t), blocksize);
-                f(dstbuf + j / sizeof(int64_t), tmpbuf, blocksize);
+                for (j = 0; j < size; j += blocksize)
+                {
+                    f(tmpbuf, srcbuf + j / sizeof(int64_t), blocksize);
+                    f(dstbuf + j / sizeof(int64_t), tmpbuf, blocksize);
+                }
             }
         }
-    }
-    else
-    {
-        for (i = 0; i < COUNT; i++)
+        else
         {
-            f(dstbuf, srcbuf, size);
+            for (i = 0; i < COUNT; i++)
+            {
+                f(dstbuf, srcbuf, size);
+            }
         }
-    }
-    t = gettime() - t;
+        t2 = gettime();
+    } while (t2 - t1 < 1.0);
+    t = t2 - t1;
+
     printf("%s%-50s : %.3f MB/s\n", indent_prefix, description,
-        (double)size * COUNT / t / 1000000.);
+        (double)size * COUNT * loopcount / t / 1000000.);
     return t;
 }
 
