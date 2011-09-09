@@ -29,6 +29,7 @@
 #include <sys/time.h>
 
 #include "util.h"
+#include "asm-opt.h"
 
 #define SIZE             (16 * 1024 * 1024)
 #define BLOCKSIZE        2048
@@ -89,6 +90,8 @@ void memset_wrapper(int64_t *dst, int64_t *src, int size)
 void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
                      int size, int blocksize, const char *indent_prefix)
 {
+    bench_info *bi = get_asm_benchmarks();
+
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
                            aligned_block_copy_backwards,
@@ -131,6 +134,18 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
                            indent_prefix, 0,
                            memset_wrapper,
                            "standard memset");
+
+    if (bi->f)
+        printf("%s---\n", indent_prefix);
+
+    while (bi->f)
+    {
+        bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                               indent_prefix, bi->use_tmpbuf,
+                               bi->f,
+                               bi->description);
+        bi++;
+    }
 }
 
 static void __attribute__((noinline)) random_test(char *zerobuffer,
