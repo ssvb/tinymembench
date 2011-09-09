@@ -113,9 +113,9 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
                            "copy via tmp buffer prefetched (once per 64 bytes)");
     printf("%s---\n", indent_prefix);
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 1,
+                           indent_prefix, 0,
                            aligned_block_fill,
-                           "write");
+                           "fill");
     printf("%s---\n", indent_prefix);
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
