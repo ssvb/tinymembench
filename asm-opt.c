@@ -148,6 +148,33 @@ bench_info *get_asm_benchmarks(void)
         return empty;
 }
 
+#elif defined(__arm__)
+
+#include "arm-neon.h"
+
+static bench_info arm_neon[] =
+{
+    { "neon copy", 0, aligned_block_copy_neon },
+    { "neon copy prefetched (once per 32 bytes)", 0, aligned_block_copy_pf32_neon },
+    { "neon copy prefetched (once per 64 bytes)", 0, aligned_block_copy_pf64_neon },
+    { "neon copy backwards", 0, aligned_block_copy_backwards_neon },
+    { "neon copy backwards prefetched (once per 32 bytes)", 0, aligned_block_copy_backwards_pf32_neon },
+    { "neon copy backwards prefetched (once per 64 bytes)", 0, aligned_block_copy_backwards_pf64_neon },
+    { "neon copy via tmp buffer", 1, aligned_block_copy_neon },
+    { "neon copy via tmp buffer prefetched (once per 32 bytes)", 1, aligned_block_copy_pf32_neon },
+    { "neon copy via tmp buffer prefetched (once per 64 bytes)", 1, aligned_block_copy_pf64_neon },
+    { "neon fill", 0, aligned_block_fill_neon },
+    { NULL, 0, NULL }
+};
+
+bench_info *get_asm_benchmarks(void)
+{
+    if (check_cpu_feature("neon"))
+        return arm_neon;
+    else
+        return empty;
+}
+
 #else
 
 bench_info *get_asm_benchmarks(void)
