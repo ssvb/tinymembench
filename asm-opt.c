@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "asm-opt.h"
 
 #if defined(__linux__) || defined(ANDROID) || defined(__ANDROID__)
@@ -40,7 +41,7 @@
 #define FEATURES_ID "?"
 #endif
 
-static int check_feature (const char *buffer, const char *feature)
+static int check_feature (char *buffer, const char *feature)
 {
   char *p;
   if (*feature == 0)

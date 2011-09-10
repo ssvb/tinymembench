@@ -220,7 +220,6 @@ void latency_bench(int size, int count)
 
 int main(void)
 {
-    int dummy;
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, SIZE,
                                                   (void **)&dstbuf, SIZE,
@@ -238,9 +237,12 @@ int main(void)
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, "    ");
     free(poolbuf);
 
-    dummy = posix_memalign((void **)&srcbuf, 128, SIZE);
-    dummy = posix_memalign((void **)&dstbuf, 128, SIZE);
-    dummy = posix_memalign((void **)&tmpbuf, 128, BLOCKSIZE);
+    if (posix_memalign((void **)&srcbuf, 128, SIZE) != 0)
+        return 1;
+    if (posix_memalign((void **)&dstbuf, 128, SIZE) != 0)
+        return 1;
+    if (posix_memalign((void **)&tmpbuf, 128, BLOCKSIZE) != 0)
+        return 1;
     memset(srcbuf, 0xCC, SIZE);
     memset(dstbuf, 0xCC, SIZE);
     memset(tmpbuf, 0xCC, BLOCKSIZE);
