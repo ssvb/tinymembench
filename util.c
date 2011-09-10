@@ -217,8 +217,7 @@ void *alloc_four_nonaliased_buffers(void **buf1_, int size1,
     }
     if (buf4)
     {
-        *buf3 = ptr + (0x33333333 & antialias_pattern_mask);
-        ptr = align_up(*buf4 + size4, ALIGN_PADDING);
+        *buf4 = ptr + (0x33333333 & antialias_pattern_mask);
     }
 
     return buf;
