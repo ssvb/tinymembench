@@ -176,6 +176,26 @@ bench_info *get_asm_benchmarks(void)
         return empty;
 }
 
+#elif defined(__mips__) && defined(_ABIO32)
+
+#include "mips-32.h"
+
+static bench_info mips_32[] =
+{
+    { "MIPS32 copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32_mips32 },
+    { "MIPS32 fill prefetched (32 bytes step)", 0, aligned_block_fill_pf32_mips32 },
+    { NULL, 0, NULL }
+};
+
+bench_info *get_asm_benchmarks(void)
+{
+    /* Enable only the processors which have 32 bytes cache line */
+    if (check_cpu_feature("24Kc") || check_cpu_feature("74K"))
+        return mips_32;
+    else
+        return empty;
+}
+
 #else
 
 bench_info *get_asm_benchmarks(void)
