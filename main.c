@@ -72,7 +72,7 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
     } while (t2 - t1 < 1.0);
     t = t2 - t1;
 
-    printf("%s%-58s : %.3f MB/s\n", indent_prefix, description,
+    printf("%s%-54s : %8.2f MB/s\n", indent_prefix, description,
         (double)size * COUNT * loopcount / t / 1000000.);
     return t;
 }
@@ -95,36 +95,36 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
                            aligned_block_copy_backwards,
-                           "direct copy backwards");
+                           "C copy backwards");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
                            aligned_block_copy,
-                           "direct copy");
+                           "C copy");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
                            aligned_block_copy_pf32,
-                           "direct copy prefetched (once per 32 bytes)");
+                           "C copy prefetched (32 bytes step)");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
                            aligned_block_copy_pf64,
-                           "direct copy prefetched (once per 64 bytes)");
+                           "C copy prefetched (64 bytes step)");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 1,
                            aligned_block_copy,
-                           "copy via tmp buffer");
+                           "C copy via tmp buffer");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 1,
                            aligned_block_copy_pf32,
-                           "copy via tmp buffer prefetched (once per 32 bytes)");
+                           "C copy via tmp buffer prefetched (32 bytes step)");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 1,
                            aligned_block_copy_pf64,
-                           "copy via tmp buffer prefetched (once per 64 bytes)");
-    printf("%s---\n", indent_prefix);
+                           "C copy via tmp buffer prefetched (64 bytes step)");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
                            aligned_block_fill,
-                           "fill");
+                           "C fill");
+
     printf("%s---\n", indent_prefix);
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
@@ -146,6 +146,7 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
                                bi->description);
         bi++;
     }
+
 }
 
 static void __attribute__((noinline)) random_test(char *zerobuffer,
@@ -204,7 +205,7 @@ void latency_bench(int size, int count)
     t_after = gettime();
     t_noaccess = t_after - t_before;
 
-    printf("block size : random access time\n");
+    printf("block size : random read access time\n");
     for (nbits = 1; (1 << nbits) <= size; nbits++)
     {
         t_before = gettime();
@@ -226,9 +227,14 @@ int main(void)
                                                   (void **)&tmpbuf, BLOCKSIZE,
                                                   NULL, 0);
     printf("\n");
-    printf("===================================================\n");
-    printf("== Memory bandwidth tests (non-aliased buffers) ===\n");
-    printf("===================================================\n\n");
+    printf("===================================================================\n");
+    printf("== Memory bandwidth tests (non-aliased buffers)                  ==\n");
+    printf("==                                                               ==\n");
+    printf("== Note 1: 1MB = 1000000 bytes                                   ==\n");
+    printf("== Note 2: Results for 'copy' tests show how many bytes can be   ==\n");
+    printf("==         copied per second (adding together read and writen    ==\n");
+    printf("==         bytes would have provided twice higher numbers)       ==\n");
+    printf("===================================================================\n\n");
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, "    ");
     free(poolbuf);
 

@@ -126,17 +126,17 @@ static bench_info empty[] = { { NULL, 0, NULL } };
 
 static bench_info x86_sse2[] =
 {
-    { "sse2 copy", 0, aligned_block_copy_sse2 },
-    { "sse2 nontemporal copy", 0, aligned_block_copy_nt_sse2 },
-    { "sse2 copy prefetched (once per 32 bytes)", 0, aligned_block_copy_pf32_sse2 },
-    { "sse2 copy prefetched (once per 64 bytes)", 0, aligned_block_copy_pf64_sse2 },
-    { "sse2 nontemporal copy prefetched (once per 32 bytes)", 0, aligned_block_copy_nt_pf32_sse2 },
-    { "sse2 nontemporal copy prefetched (once per 64 bytes)", 0, aligned_block_copy_nt_pf64_sse2 },
-    { "sse2 copy via tmp buffer", 1, aligned_block_copy_sse2 },
-    { "sse2 copy via tmp buffer prefetched (once per 32 bytes)", 1, aligned_block_copy_pf32_sse2 },
-    { "sse2 copy via tmp buffer prefetched (once per 64 bytes)", 1, aligned_block_copy_pf64_sse2 },
-    { "sse2 fill", 0, aligned_block_fill_sse2 },
-    { "sse2 nontemporal fill", 0, aligned_block_fill_nt_sse2 },
+    { "SSE2 copy", 0, aligned_block_copy_sse2 },
+    { "SSE2 nontemporal copy", 0, aligned_block_copy_nt_sse2 },
+    { "SSE2 copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32_sse2 },
+    { "SSE2 copy prefetched (64 bytes step)", 0, aligned_block_copy_pf64_sse2 },
+    { "SSE2 nontemporal copy prefetched (32 bytes step)", 0, aligned_block_copy_nt_pf32_sse2 },
+    { "SSE2 nontemporal copy prefetched (64 bytes step)", 0, aligned_block_copy_nt_pf64_sse2 },
+    { "SSE2 copy via tmp buffer", 1, aligned_block_copy_sse2 },
+    { "SSE2 copy via tmp buffer prefetched (32 bytes step)", 1, aligned_block_copy_pf32_sse2 },
+    { "SSE2 copy via tmp buffer prefetched (64 bytes step)", 1, aligned_block_copy_pf64_sse2 },
+    { "SSE2 fill", 0, aligned_block_fill_sse2 },
+    { "SSE2 nontemporal fill", 0, aligned_block_fill_nt_sse2 },
     { NULL, 0, NULL }
 };
 
@@ -154,16 +154,16 @@ bench_info *get_asm_benchmarks(void)
 
 static bench_info arm_neon[] =
 {
-    { "neon copy", 0, aligned_block_copy_neon },
-    { "neon copy prefetched (once per 32 bytes)", 0, aligned_block_copy_pf32_neon },
-    { "neon copy prefetched (once per 64 bytes)", 0, aligned_block_copy_pf64_neon },
-    { "neon copy backwards", 0, aligned_block_copy_backwards_neon },
-    { "neon copy backwards prefetched (once per 32 bytes)", 0, aligned_block_copy_backwards_pf32_neon },
-    { "neon copy backwards prefetched (once per 64 bytes)", 0, aligned_block_copy_backwards_pf64_neon },
-    { "neon copy via tmp buffer", 1, aligned_block_copy_neon },
-    { "neon copy via tmp buffer prefetched (once per 32 bytes)", 1, aligned_block_copy_pf32_neon },
-    { "neon copy via tmp buffer prefetched (once per 64 bytes)", 1, aligned_block_copy_pf64_neon },
-    { "neon fill", 0, aligned_block_fill_neon },
+    { "NEON copy", 0, aligned_block_copy_neon },
+    { "NEON copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32_neon },
+    { "NEON copy prefetched (64 bytes step)", 0, aligned_block_copy_pf64_neon },
+    { "NEON copy backwards", 0, aligned_block_copy_backwards_neon },
+    { "NEON copy backwards prefetched (32 bytes step)", 0, aligned_block_copy_backwards_pf32_neon },
+    { "NEON copy backwards prefetched (64 bytes step)", 0, aligned_block_copy_backwards_pf64_neon },
+    { "NEON copy via tmp buffer", 1, aligned_block_copy_neon },
+    { "NEON copy via tmp buffer prefetched (32 bytes step)", 1, aligned_block_copy_pf32_neon },
+    { "NEON copy via tmp buffer prefetched (64 bytes step)", 1, aligned_block_copy_pf64_neon },
+    { "NEON fill", 0, aligned_block_fill_neon },
     { NULL, 0, NULL }
 };
 
