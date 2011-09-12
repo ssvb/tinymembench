@@ -28,7 +28,7 @@
 
 #define PREFETCH_DISTANCE 256
 
-.macro asm_function function_name
+.macro asm_function_helper function_name
     .global \function_name
 .func \function_name
 \function_name:
@@ -43,6 +43,14 @@
     .set DST,  eax
     .set SRC,  ecx
     .set SIZE, edx
+#endif
+.endm
+
+.macro asm_function function_name
+#ifdef _WIN32
+    asm_function_helper _\function_name
+#else
+    asm_function_helper \function_name
 #endif
 .endm
 

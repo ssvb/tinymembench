@@ -1,6 +1,6 @@
 all: ssvb-membench
 
-ifndef CC
+ifdef WINDIR
 	CC = gcc
 endif
 
@@ -23,5 +23,6 @@ mips-32.o: mips-32.S
 	${CC} -O2 ${CFLAGS} -c mips-32.S
 
 clean:
-	-rm ssvb-membench
-	-rm *.o
+	-rm -f ssvb-membench
+	-rm -f ssvb-membench.exe
+	-rm -f *.o

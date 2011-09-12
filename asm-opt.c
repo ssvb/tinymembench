@@ -141,9 +141,42 @@ static bench_info x86_sse2[] =
     { NULL, 0, NULL }
 };
 
+static int check_sse2_support(void)
+{
+#ifdef __amd64__
+    return 1; /* We assume that all 64-bit processors have SSE2 support */
+#else
+    int cpuid_feature_information;
+    __asm__ volatile (
+        /* According to Intel manual, CPUID instruction is supported
+         * if the value of ID bit (bit 21) in EFLAGS can be modified */
+        "pushf\n"
+        "movl     (%%esp),   %0\n"
+        "xorl     $0x200000, (%%esp)\n" /* try to modify ID bit */
+        "popf\n"
+        "pushf\n"
+        "xorl     (%%esp),   %0\n"      /* check if ID bit changed */
+        "jz       1f\n"
+        "push     %%eax\n"
+        "push     %%ebx\n"
+        "push     %%ecx\n"
+        "mov      $1,        %%eax\n"
+        "cpuid\n"
+        "pop      %%ecx\n"
+        "pop      %%ebx\n"
+        "pop      %%eax\n"
+        "1:\n"
+        "popf\n"
+        : "=d" (cpuid_feature_information)
+        :
+        : "cc");
+    return cpuid_feature_information & (1 << 26);
+#endif
+}
+
 bench_info *get_asm_benchmarks(void)
 {
-    if (check_cpu_feature("sse2"))
+    if (check_sse2_support())
         return x86_sse2;
     else
         return empty;

@@ -25,7 +25,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/mman.h>
 #include <sys/time.h>
 
 #include "util.h"
@@ -195,9 +194,11 @@ void latency_bench(int size, int count)
 {
     double t, t_before, t_after, t_noaccess;
     int nbits;
-    char *buffer;
-    if (posix_memalign((void **)&buffer, 4096, size) != 0)
+    char *buffer, *buffer_alloc;
+    buffer_alloc = (char *)malloc(size + 4095);
+    if (!buffer_alloc)
         return;
+    buffer = (char *)(((uintptr_t)buffer_alloc + 4095) & ~(uintptr_t)4095);
     memset(buffer, 0, size);
 
     t_before = gettime();
@@ -215,7 +216,7 @@ void latency_bench(int size, int count)
         if (t < 0) t = 0;
         printf("%10d : %-3.1f ns\n", (1 << nbits), t * 1000000000. / count);
     }
-    free(buffer);
+    free(buffer_alloc);
 }
 
 int main(void)
@@ -237,6 +238,7 @@ int main(void)
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, "    ");
     free(poolbuf);
 
+#ifndef _WIN32
     if (posix_memalign((void **)&srcbuf, 128, SIZE) != 0)
         return 1;
     if (posix_memalign((void **)&dstbuf, 128, SIZE) != 0)
@@ -256,6 +258,7 @@ int main(void)
     free(srcbuf);
     free(dstbuf);
     free(tmpbuf);
+#endif
 
     printf("\n");
     printf("==========================\n");
