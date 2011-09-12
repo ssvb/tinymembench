@@ -29,6 +29,7 @@
 
 #include "util.h"
 #include "asm-opt.h"
+#include "version.h"
 
 #define SIZE             (16 * 1024 * 1024)
 #define BLOCKSIZE        2048
@@ -222,10 +223,14 @@ void latency_bench(int size, int count)
 int main(void)
 {
     int64_t *srcbuf, *dstbuf, *tmpbuf;
-    void *poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, SIZE,
-                                                  (void **)&dstbuf, SIZE,
-                                                  (void **)&tmpbuf, BLOCKSIZE,
-                                                  NULL, 0);
+    void *poolbuf;
+
+    printf("ssvb-membench v" VERSION " (simple benchmark for memory throughput and latency)\n");
+
+    poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, SIZE,
+                                            (void **)&dstbuf, SIZE,
+                                            (void **)&tmpbuf, BLOCKSIZE,
+                                            NULL, 0);
     printf("\n");
     printf("===================================================================\n");
     printf("== Memory bandwidth tests (non-aliased buffers)                  ==\n");
