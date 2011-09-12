@@ -222,11 +222,26 @@ static bench_info mips_32[] =
 
 bench_info *get_asm_benchmarks(void)
 {
-    /* Enable only the processors which have 32 bytes cache line */
-    if (check_cpu_feature("24Kc") || check_cpu_feature("74K"))
+    /* Enable only for MIPS32 processors which have 32 bytes cache line */
+    if (check_cpu_feature("MIPS 24K") ||
+        check_cpu_feature("MIPS 24Kc") ||
+        check_cpu_feature("MIPS 24Kf") ||
+        check_cpu_feature("MIPS 74K") ||
+        check_cpu_feature("MIPS 74Kc") ||
+        check_cpu_feature("MIPS 74Kf") ||
+        check_cpu_feature("MIPS 1004K") ||
+        check_cpu_feature("MIPS 1004Kc") ||
+        check_cpu_feature("MIPS 1004Kf") ||
+        check_cpu_feature("MIPS 1074K") ||
+        check_cpu_feature("MIPS 1074Kc") ||
+        check_cpu_feature("MIPS 1074Kf"))
+    {
         return mips_32;
+    }
     else
+    {
         return empty;
+    }
 }
 
 #else
