@@ -149,8 +149,8 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
 
 }
 
-static void __attribute__((noinline)) random_test(char *zerobuffer,
-                                                  int count, int nbits)
+static void __attribute__((noinline)) random_read_test(char *zerobuffer,
+                                                       int count, int nbits)
 {
     uint32_t seed = 0;
     uintptr_t addrmask = (1 << nbits) - 1;
@@ -189,11 +189,63 @@ static void __attribute__((noinline)) random_test(char *zerobuffer,
         RANDOM_MEM_ACCESS();
     }
     dummy = seed;
+    #undef RANDOM_MEM_ACCESS
+}
+
+static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
+                                                            int count, int nbits)
+{
+    uint32_t seed = 0;
+    uintptr_t addrmask = (1 << nbits) - 1;
+    uint32_t v1, v2;
+    static volatile uint32_t dummy;
+
+    #define RANDOM_MEM_ACCESS()                 \
+        seed = seed * 1103515245 + 12345;       \
+        v1 = (seed >> 16) & 0xFF00;             \
+        seed = seed * 1103515245 + 12345;       \
+        v2 = (seed >> 16) & 0xFF00;             \
+        seed = seed * 1103515245 + 12345;       \
+        v1 |= seed & 0x7FFF0000;                \
+        seed = seed * 1103515245 + 12345;       \
+        v2 |= seed & 0x7FFF0000;                \
+        seed = seed * 1103515245 + 12345;       \
+        v1 |= (seed >> 16) & 0xFF;              \
+        v2 |= (seed >> 24);                     \
+        v2 &= addrmask;                         \
+        v1 ^= v2;                               \
+        seed |= zerobuffer[v1 & addrmask];      \
+        seed += zerobuffer[v2];
+
+    while (count > 16) {
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        RANDOM_MEM_ACCESS();
+        count -= 16;
+    }
+    while (count-- > 0) {
+        RANDOM_MEM_ACCESS();
+    }
+    dummy = seed;
+    #undef RANDOM_MEM_ACCESS
 }
 
 void latency_bench(int size, int count)
 {
-    double t, t_before, t_after, t_noaccess;
+    double t, t2, t_before, t_after, t_noaccess, t_noaccess2;
     int nbits;
     char *buffer, *buffer_alloc;
     buffer_alloc = (char *)malloc(size + 4095);
@@ -203,19 +255,30 @@ void latency_bench(int size, int count)
     memset(buffer, 0, size);
 
     t_before = gettime();
-    random_test(buffer, count, 1);
+    random_read_test(buffer, count, 1);
     t_after = gettime();
     t_noaccess = t_after - t_before;
 
-    printf("block size : random read access time\n");
+    t_before = gettime();
+    random_dual_read_test(buffer, count, 1);
+    t_after = gettime();
+    t_noaccess2 = t_after - t_before;
+
+    printf("block size : read access time (single random read / dual random read)\n");
     for (nbits = 1; (1 << nbits) <= size; nbits++)
     {
         t_before = gettime();
-        random_test(buffer, count, nbits);
+        random_read_test(buffer, count, nbits);
         t_after = gettime();
         t = t_after - t_before - t_noaccess;
         if (t < 0) t = 0;
-        printf("%10d : %-3.1f ns\n", (1 << nbits), t * 1000000000. / count);
+        t_before = gettime();
+        random_dual_read_test(buffer, count, nbits);
+        t_after = gettime();
+        t2 = t_after - t_before - t_noaccess2;
+        if (t2 < 0) t2 = 0;
+        printf("%10d : %6.1f ns  /  %6.1f ns \n", (1 << nbits),
+            t * 1000000000. / count,  t2 * 1000000000. / count);
     }
     free(buffer_alloc);
 }
