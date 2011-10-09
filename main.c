@@ -306,28 +306,6 @@ int main(void)
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, "    ");
     free(poolbuf);
 
-#ifndef _WIN32
-    if (posix_memalign((void **)&srcbuf, 128, SIZE) != 0)
-        return 1;
-    if (posix_memalign((void **)&dstbuf, 128, SIZE) != 0)
-        return 1;
-    if (posix_memalign((void **)&tmpbuf, 128, BLOCKSIZE) != 0)
-        return 1;
-    memset(srcbuf, 0xCC, SIZE);
-    memset(dstbuf, 0xCC, SIZE);
-    memset(tmpbuf, 0xCC, BLOCKSIZE);
-    printf("\n");
-    printf("===================================================================\n");
-    printf("== Memory bandwidth tests (normal, potentially aliased buffers) ===\n");
-    printf("== WARNING: the results below are likely bogus, especially if   ===\n");
-    printf("==          obtained on a freshly rebooted system               ===\n");
-    printf("===================================================================\n\n");
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, "    ");
-    free(srcbuf);
-    free(dstbuf);
-    free(tmpbuf);
-#endif
-
     printf("\n");
     printf("==========================\n");
     printf("== Memory latency test ===\n");
