@@ -169,4 +169,20 @@ asm_function aligned_block_fill_strd_armv5te
     pop         {r4-r12, pc}
 .endfunc
 
+asm_function aligned_block_copy_armv5te
+    push        {r4-r12, lr}
+0:
+    subs        SIZE, SIZE, #64
+    ldmia       SRC!, {r4-r11}
+    pld         [SRC, #128]
+    stmia       DST!, {r4-r7}
+    stmia       DST!, {r8-r11}
+    ldmia       SRC!, {r4-r11}
+    pld         [SRC, #128]
+    stmia       DST!, {r4-r7}
+    stmia       DST!, {r8-r11}
+    bgt         0b
+    pop         {r4-r12, pc}
+.endfunc
+
 #endif
