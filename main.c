@@ -157,6 +157,40 @@ static void __attribute__((noinline)) random_read_test(char *zerobuffer,
     uint32_t v;
     static volatile uint32_t dummy;
 
+#ifdef __arm__
+    uint32_t tmp;
+    __asm__ volatile (
+        "subs %[count], %[count],       #16\n"
+        "blt  1f\n"
+    "0:\n"
+        "subs %[count], %[count],       #16\n"
+    ".rept 16\n"
+        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "and  %[v],     %[xFF],         %[seed],        lsr #16\n"
+        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "and  %[tmp],   %[xFF00],       %[seed],        lsr #8\n"
+        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "orr  %[v],     %[v],           %[tmp]\n"
+        "and  %[tmp],   %[x7FFF0000],   %[seed]\n"
+        "orr  %[v],     %[v],           %[tmp]\n"
+        "and  %[v],     %[v],           %[addrmask]\n"
+        "ldrb %[v],     [%[zerobuffer], %[v]]\n"
+        "orr  %[seed],  %[seed],        %[v]\n"
+    ".endr\n"
+        "bge  0b\n"
+    "1:\n"
+        "add  %[count], %[count],       #16\n"
+        : [count] "+&r" (count),
+          [seed] "+&r" (seed), [v] "=&r" (v),
+          [tmp] "=&r" (tmp)
+        : [c1103515245] "r" (1103515245), [c12345] "r" (12345),
+          [xFF00] "r" (0xFF00), [xFF] "r" (0xFF),
+          [x7FFF0000] "r" (0x7FFF0000),
+          [zerobuffer] "r" (zerobuffer),
+          [addrmask] "r" (addrmask)
+        : "cc");
+#endif
+
     #define RANDOM_MEM_ACCESS()                 \
         seed = seed * 1103515245 + 12345;       \
         v = (seed >> 16) & 0xFF;                \
@@ -199,6 +233,50 @@ static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
     uintptr_t addrmask = (1 << nbits) - 1;
     uint32_t v1, v2;
     static volatile uint32_t dummy;
+
+#ifdef __arm__
+    uint32_t tmp;
+    __asm__ volatile (
+        "subs %[count], %[count],       #16\n"
+        "blt  1f\n"
+    "0:\n"
+        "subs %[count], %[count],       #16\n"
+    ".rept 16\n"
+        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "and  %[v1],    %[xFF00],       %[seed],        lsr #8\n"
+        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "and  %[v2],    %[xFF00],       %[seed],        lsr #8\n"
+        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "and  %[tmp],   %[x7FFF0000],   %[seed]\n"
+        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "orr  %[v1],    %[v1],          %[tmp]\n"
+        "and  %[tmp],   %[x7FFF0000],   %[seed]\n"
+        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "orr  %[v2],    %[v2],          %[tmp]\n"
+        "and  %[tmp],   %[xFF],         %[seed],        lsr #16\n"
+        "orr  %[v2],    %[v2],          %[seed],        lsr #24\n"
+        "orr  %[v1],    %[v1],          %[tmp]\n"
+        "and  %[v2],    %[v2],          %[addrmask]\n"
+        "eor  %[v1],    %[v1],          %[v2]\n"
+        "and  %[v1],    %[v1],          %[addrmask]\n"
+        "ldrb %[v2],    [%[zerobuffer], %[v2]]\n"
+        "ldrb %[v1],    [%[zerobuffer], %[v1]]\n"
+        "orr  %[seed],  %[seed],        %[v2]\n"
+        "add  %[seed],  %[seed],        %[v1]\n"
+    ".endr\n"
+        "bge  0b\n"
+    "1:\n"
+        "add  %[count], %[count],       #16\n"
+        : [count] "+&r" (count),
+          [seed] "+&r" (seed), [v1] "=&r" (v1), [v2] "=&r" (v2),
+          [tmp] "=&r" (tmp)
+        : [c1103515245] "r" (1103515245), [c12345] "r" (12345),
+          [xFF00] "r" (0xFF00), [xFF] "r" (0xFF),
+          [x7FFF0000] "r" (0x7FFF0000),
+          [zerobuffer] "r" (zerobuffer),
+          [addrmask] "r" (addrmask)
+        : "cc");
+#endif
 
     #define RANDOM_MEM_ACCESS()                 \
         seed = seed * 1103515245 + 12345;       \
