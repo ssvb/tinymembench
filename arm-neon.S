@@ -126,4 +126,47 @@ asm_function aligned_block_fill_neon
     bx          lr
 .endfunc
 
+/* some code for older ARM processors */
+
+asm_function aligned_block_fill_stm4_armv4
+    push        {r4-r12, lr}
+    ldmia       SRC!, {r4-r11}
+0:
+    stmia       DST!, {r4-r7}
+    stmia       DST!, {r8-r11}
+    stmia       DST!, {r4-r7}
+    stmia       DST!, {r8-r11}
+    subs        SIZE, SIZE, #64
+    bgt         0b
+    pop         {r4-r12, pc}
+.endfunc
+
+asm_function aligned_block_fill_stm8_armv4
+    push        {r4-r12, lr}
+    ldmia       SRC!, {r4-r11}
+0:
+    stmia       DST!, {r4-r11}
+    stmia       DST!, {r4-r11}
+    subs        SIZE, SIZE, #64
+    bgt         0b
+    pop         {r4-r12, pc}
+.endfunc
+
+asm_function aligned_block_fill_strd_armv5te
+    push        {r4-r12, lr}
+    ldmia       SRC!, {r4-r11}
+0:
+    strd        r4,  r5,  [DST], #8
+    strd        r6,  r7,  [DST], #8
+    strd        r8,  r9,  [DST], #8
+    strd        r10, r11, [DST], #8
+    strd        r4,  r5,  [DST], #8
+    strd        r6,  r7,  [DST], #8
+    strd        r8,  r9,  [DST], #8
+    strd        r10, r11, [DST], #8
+    subs        SIZE, SIZE, #64
+    bgt         0b
+    pop         {r4-r12, pc}
+.endfunc
+
 #endif
