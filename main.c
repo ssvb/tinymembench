@@ -161,12 +161,12 @@ static void __attribute__((noinline)) random_read_test(char *zerobuffer,
         seed = seed * 1103515245 + 12345;       \
         v = (seed >> 16) & 0xFF;                \
         seed = seed * 1103515245 + 12345;       \
-        v |= ((seed >> 16) & 0xFF) << 8;        \
+        v |= (seed >> 8) & 0xFF00;              \
         seed = seed * 1103515245 + 12345;       \
-        v |= ((seed >> 16) & 0x7FFF) << 16;     \
+        v |= seed & 0x7FFF0000;                 \
         seed |= zerobuffer[v & addrmask];
 
-    while (count > 16) {
+    while (count >= 16) {
         RANDOM_MEM_ACCESS();
         RANDOM_MEM_ACCESS();
         RANDOM_MEM_ACCESS();
@@ -202,9 +202,9 @@ static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
 
     #define RANDOM_MEM_ACCESS()                 \
         seed = seed * 1103515245 + 12345;       \
-        v1 = (seed >> 16) & 0xFF00;             \
+        v1 = (seed >> 8) & 0xFF00;              \
         seed = seed * 1103515245 + 12345;       \
-        v2 = (seed >> 16) & 0xFF00;             \
+        v2 = (seed >> 8) & 0xFF00;              \
         seed = seed * 1103515245 + 12345;       \
         v1 |= seed & 0x7FFF0000;                \
         seed = seed * 1103515245 + 12345;       \
@@ -214,10 +214,10 @@ static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
         v2 |= (seed >> 24);                     \
         v2 &= addrmask;                         \
         v1 ^= v2;                               \
-        seed |= zerobuffer[v1 & addrmask];      \
-        seed += zerobuffer[v2];
+        seed |= zerobuffer[v2];                 \
+        seed += zerobuffer[v1 & addrmask];
 
-    while (count > 16) {
+    while (count >= 16) {
         RANDOM_MEM_ACCESS();
         RANDOM_MEM_ACCESS();
         RANDOM_MEM_ACCESS();
