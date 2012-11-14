@@ -56,9 +56,13 @@ void aligned_block_fill_neon(int64_t * __restrict dst,
                              int64_t * __restrict src,
                              int                  size);
 
-void aligned_block_copy_armv5te(int64_t * __restrict dst,
-                                int64_t * __restrict src,
-                                int                  size);
+void aligned_block_copy_incr_armv5te(int64_t * __restrict dst,
+                                     int64_t * __restrict src,
+                                     int                  size);
+
+void aligned_block_copy_wrap_armv5te(int64_t * __restrict dst,
+                                     int64_t * __restrict src,
+                                     int                  size);
 
 void aligned_block_fill_strd_armv5te(int64_t * __restrict dst,
                                      int64_t * __restrict src,

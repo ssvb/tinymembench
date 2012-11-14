@@ -201,7 +201,8 @@ static bench_info arm_neon[] =
     { "ARM fill (STRD)", 0, aligned_block_fill_strd_armv5te },
     { "ARM fill (STM with 8 registers)", 0, aligned_block_fill_stm8_armv4 },
     { "ARM fill (STM with 4 registers)", 0, aligned_block_fill_stm4_armv4 },
-    { "ARM copy prefetched", 0, aligned_block_copy_armv5te },
+    { "ARM copy prefetched (incr pld)", 0, aligned_block_copy_incr_armv5te },
+    { "ARM copy prefetched (wrap pld)", 0, aligned_block_copy_wrap_armv5te },
     { NULL, 0, NULL }
 };
 
@@ -210,7 +211,8 @@ static bench_info arm_v5te[] =
     { "ARM fill (STRD)", 0, aligned_block_fill_strd_armv5te },
     { "ARM fill (STM with 8 registers)", 0, aligned_block_fill_stm8_armv4 },
     { "ARM fill (STM with 4 registers)", 0, aligned_block_fill_stm4_armv4 },
-    { "ARM copy prefetched", 0, aligned_block_copy_armv5te },
+    { "ARM copy prefetched (incr pld)", 0, aligned_block_copy_incr_armv5te },
+    { "ARM copy prefetched (wrap pld)", 0, aligned_block_copy_wrap_armv5te },
     { NULL, 0, NULL }
 };
 
