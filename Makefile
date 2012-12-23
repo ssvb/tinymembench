@@ -5,7 +5,7 @@ ifdef WINDIR
 endif
 
 ssvb-membench: main.c util.o util.h asm-opt.h version.h asm-opt.o x86-sse2.o arm-neon.o mips-32.o
-	${CC} -O2 ${CFLAGS} -o ssvb-membench main.c util.o asm-opt.o x86-sse2.o arm-neon.o mips-32.o
+	${CC} -O2 ${CFLAGS} -o ssvb-membench main.c util.o asm-opt.o x86-sse2.o arm-neon.o mips-32.o -lm
 
 util.o: util.c util.h
 	${CC} -O2 ${CFLAGS} -c util.c

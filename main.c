@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <sys/time.h>
 
 #include "util.h"
@@ -33,7 +34,8 @@
 
 #define SIZE             (16 * 1024 * 1024)
 #define BLOCKSIZE        2048
-#define COUNT            64
+#define COUNT            16
+#define MAXREPEATS       10
 
 static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
                                      int64_t *tmpbuf,
@@ -43,38 +45,69 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
                                      void (*f)(int64_t *, int64_t *, int),
                                      const char *description)
 {
-    int i, j, loopcount = 0;
-    double t1, t2, t;
-    f(dstbuf, srcbuf, size);
-    t1 = gettime();
-    do
+    int i, j, loopcount, n;
+    double t1, t2;
+    double speed, maxspeed;
+    double s, s0, s1, s2;
+
+    /* do up to MAXREPEATS measurements */
+    s0 = s1 = s2 = 0;
+    maxspeed   = 0;
+    for (n = 0; n < MAXREPEATS; n++)
     {
-        loopcount++;
-        if (use_tmpbuf)
+        f(dstbuf, srcbuf, size);
+        loopcount = 0;
+        t1 = gettime();
+        do
         {
-            for (i = 0; i < COUNT; i++)
+            loopcount++;
+            if (use_tmpbuf)
             {
-                for (j = 0; j < size; j += blocksize)
+                for (i = 0; i < COUNT; i++)
                 {
-                    f(tmpbuf, srcbuf + j / sizeof(int64_t), blocksize);
-                    f(dstbuf + j / sizeof(int64_t), tmpbuf, blocksize);
+                    for (j = 0; j < size; j += blocksize)
+                        {
+                        f(tmpbuf, srcbuf + j / sizeof(int64_t), blocksize);
+                        f(dstbuf + j / sizeof(int64_t), tmpbuf, blocksize);
+                    }
                 }
             }
-        }
-        else
-        {
-            for (i = 0; i < COUNT; i++)
+            else
             {
-                f(dstbuf, srcbuf, size);
+                for (i = 0; i < COUNT; i++)
+                {
+                    f(dstbuf, srcbuf, size);
+                }
             }
-        }
-        t2 = gettime();
-    } while (t2 - t1 < 1.0);
-    t = t2 - t1;
+            t2 = gettime();
+        } while (t2 - t1 < 0.5);
+        speed = (double)size * COUNT * loopcount / (t2 - t1) / 1000000.;
 
-    printf("%s%-54s : %8.2f MB/s\n", indent_prefix, description,
-        (double)size * COUNT * loopcount / t / 1000000.);
-    return t;
+        s0 += 1;
+        s1 += speed;
+        s2 += speed * speed;
+
+        if (speed > maxspeed)
+            maxspeed = speed;
+
+        if (s0 > 2)
+        {
+            s = sqrt((s0 * s2 - s1 * s1) / (s0 * (s0 - 1)));
+            if (s < maxspeed / 1000.)
+                break;
+        }
+    }
+
+    if (s / maxspeed * 100. >= 0.1)
+    {
+        printf("%s%-52s : %8.1f MB/s (%.1f%%)\n", indent_prefix, description,
+                                               maxspeed, s / maxspeed * 100.);
+    }
+    else
+    {
+        printf("%s%-52s : %8.1f MB/s\n", indent_prefix, description, maxspeed);
+    }
+    return maxspeed;
 }
 
 void memcpy_wrapper(int64_t *dst, int64_t *src, int size)
@@ -374,14 +407,16 @@ int main(void)
                                             NULL, 0);
     printf("\n");
     printf("===================================================================\n");
-    printf("== Memory bandwidth tests (non-aliased buffers)                  ==\n");
+    printf("== Memory bandwidth tests                                        ==\n");
     printf("==                                                               ==\n");
     printf("== Note 1: 1MB = 1000000 bytes                                   ==\n");
     printf("== Note 2: Results for 'copy' tests show how many bytes can be   ==\n");
     printf("==         copied per second (adding together read and writen    ==\n");
     printf("==         bytes would have provided twice higher numbers)       ==\n");
+    printf("== Note 3: If sample standard deviation exceeds 0.1%%, it is      ==\n");
+    printf("==         shown in brackets                                     ==\n");
     printf("===================================================================\n\n");
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, "    ");
+    bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, " ");
     free(poolbuf);
 
     printf("\n");
