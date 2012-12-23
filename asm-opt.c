@@ -188,6 +188,9 @@ bench_info *get_asm_benchmarks(void)
 
 static bench_info arm_neon[] =
 {
+    { "NEON read", 0, aligned_block_read_neon },
+    { "NEON read prefetched (32 bytes step)", 0, aligned_block_read_pf32_neon },
+    { "NEON read prefetched (64 bytes step)", 0, aligned_block_read_pf64_neon },
     { "NEON copy", 0, aligned_block_copy_neon },
     { "NEON copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32_neon },
     { "NEON copy prefetched (64 bytes step)", 0, aligned_block_copy_pf64_neon },

@@ -39,6 +39,99 @@
     SIZE        .req r2
 .endm
 
+/* Actually this calculates a sum of 32-bit values */
+asm_function aligned_block_read_neon
+    vmov.u32    q3,  #0
+    vmov.u32    q12, #0
+    vmov.u32    q13, #0
+    vmov.u32    q14, #0
+    vmov.u32    q15, #0
+    bic         SIZE, SIZE, #127
+0:
+.rept 2
+    vld1.32     {q0, q1}, [SRC]!
+    vadd.u32    q15, q15, q3
+    vadd.u32    q12, q12, q0
+    vld1.32     {q2, q3}, [SRC]!
+    vadd.u32    q13, q13, q1
+    vadd.u32    q14, q14, q2
+.endr
+    subs        SIZE, SIZE, #128
+    bgt         0b
+    vadd.u32    q15, q15, q3
+    vadd.u32    q15, q15, q12
+    vadd.u32    q15, q15, q13
+    vadd.u32    q15, q15, q14
+    vadd.u32    d31, d30, d31
+    vpadd.u32   d31, d31, d31
+    vmov.u32    r0, d31[0]
+    bx          lr
+.endfunc
+
+/* Actually this calculates a sum of 32-bit values */
+asm_function aligned_block_read_pf32_neon
+    vmov.u32    q3,  #0
+    vmov.u32    q12, #0
+    vmov.u32    q13, #0
+    vmov.u32    q14, #0
+    vmov.u32    q15, #0
+    bic         SIZE, SIZE, #127
+0:
+.rept 2
+    vld1.32     {q0, q1}, [SRC]!
+    vadd.u32    q15, q15, q3
+    pld         [SRC, #256]
+    pld         [SRC, #256 + 32]
+    vadd.u32    q12, q12, q0
+    vld1.32     {q2, q3}, [SRC]!
+    vadd.u32    q13, q13, q1
+    pld         [SRC, #512]
+    pld         [SRC, #512 + 32]
+    vadd.u32    q14, q14, q2
+.endr
+    subs        SIZE, SIZE, #128
+    bgt         0b
+    vadd.u32    q15, q15, q3
+    vadd.u32    q15, q15, q12
+    vadd.u32    q15, q15, q13
+    vadd.u32    q15, q15, q14
+    vadd.u32    d31, d30, d31
+    vpadd.u32   d31, d31, d31
+    vmov.u32    r0, d31[0]
+    bx          lr
+.endfunc
+
+/* Actually this calculates a sum of 32-bit values */
+asm_function aligned_block_read_pf64_neon
+    vmov.u32    q3,  #0
+    vmov.u32    q12, #0
+    vmov.u32    q13, #0
+    vmov.u32    q14, #0
+    vmov.u32    q15, #0
+    bic         SIZE, SIZE, #127
+0:
+.rept 2
+    vld1.32     {q0, q1}, [SRC]!
+    vadd.u32    q15, q15, q3
+    pld         [SRC, #256]
+    vadd.u32    q12, q12, q0
+    vld1.32     {q2, q3}, [SRC]!
+    vadd.u32    q13, q13, q1
+    pld         [SRC, #512]
+    vadd.u32    q14, q14, q2
+.endr
+    subs        SIZE, SIZE, #128
+    bgt         0b
+    vadd.u32    q15, q15, q3
+    vadd.u32    q15, q15, q12
+    vadd.u32    q15, q15, q13
+    vadd.u32    q15, q15, q14
+    vadd.u32    d31, d30, d31
+    vpadd.u32   d31, d31, d31
+    vmov.u32    r0, d31[0]
+    bx          lr
+.endfunc
+
 asm_function aligned_block_copy_neon
 0:
     vld1.8      {d0, d1, d2, d3}, [SRC]!
