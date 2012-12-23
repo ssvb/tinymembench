@@ -52,6 +52,17 @@ void aligned_block_copy_pf64_neon(int64_t * __restrict dst,
                                   int64_t * __restrict src,
                                   int                  size);
 
+void aligned_block_copy_unrolled_neon(int64_t * __restrict dst,
+                                      int64_t * __restrict src,
+                                      int                  size);
+
+void aligned_block_copy_unrolled_pf32_neon(int64_t * __restrict dst,
+                                           int64_t * __restrict src,
+                                           int                  size);
+void aligned_block_copy_unrolled_pf64_neon(int64_t * __restrict dst,
+                                           int64_t * __restrict src,
+                                           int                  size);
+
 void aligned_block_copy_backwards_neon(int64_t * __restrict dst,
                                        int64_t * __restrict src,
                                        int                  size);

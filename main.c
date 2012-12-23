@@ -144,15 +144,15 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 1,
                            aligned_block_copy,
-                           "C copy via tmp buffer");
+                           "C 2-pass copy");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 1,
                            aligned_block_copy_pf32,
-                           "C copy via tmp buffer prefetched (32 bytes step)");
+                           "C 2-pass copy prefetched (32 bytes step)");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 1,
                            aligned_block_copy_pf64,
-                           "C copy via tmp buffer prefetched (64 bytes step)");
+                           "C 2-pass copy prefetched (64 bytes step)");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
                            aligned_block_fill,
@@ -406,16 +406,19 @@ int main(void)
                                             (void **)&tmpbuf, BLOCKSIZE,
                                             NULL, 0);
     printf("\n");
-    printf("===================================================================\n");
-    printf("== Memory bandwidth tests                                        ==\n");
-    printf("==                                                               ==\n");
-    printf("== Note 1: 1MB = 1000000 bytes                                   ==\n");
-    printf("== Note 2: Results for 'copy' tests show how many bytes can be   ==\n");
-    printf("==         copied per second (adding together read and writen    ==\n");
-    printf("==         bytes would have provided twice higher numbers)       ==\n");
-    printf("== Note 3: If sample standard deviation exceeds 0.1%%, it is      ==\n");
-    printf("==         shown in brackets                                     ==\n");
-    printf("===================================================================\n\n");
+    printf("==========================================================================\n");
+    printf("== Memory bandwidth tests                                               ==\n");
+    printf("==                                                                      ==\n");
+    printf("== Note 1: 1MB = 1000000 bytes                                          ==\n");
+    printf("== Note 2: Results for 'copy' tests show how many bytes can be          ==\n");
+    printf("==         copied per second (adding together read and writen           ==\n");
+    printf("==         bytes would have provided twice higher numbers)              ==\n");
+    printf("== Note 3: 2-pass copy means that we are using a small temporary buffer ==\n");
+    printf("==         to first fetch data into it, and only then write it to the   ==\n");
+    printf("==         destination (source -> L1 cache, L1 cache -> destination)    ==\n");
+    printf("== Note 4: If sample standard deviation exceeds 0.1%%, it is shown in    ==\n");
+    printf("==         brackets                                                     ==\n");
+    printf("==========================================================================\n\n");
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, " ");
     free(poolbuf);
 

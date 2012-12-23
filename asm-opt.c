@@ -133,9 +133,9 @@ static bench_info x86_sse2[] =
     { "SSE2 copy prefetched (64 bytes step)", 0, aligned_block_copy_pf64_sse2 },
     { "SSE2 nontemporal copy prefetched (32 bytes step)", 0, aligned_block_copy_nt_pf32_sse2 },
     { "SSE2 nontemporal copy prefetched (64 bytes step)", 0, aligned_block_copy_nt_pf64_sse2 },
-    { "SSE2 copy via tmp buffer", 1, aligned_block_copy_sse2 },
-    { "SSE2 copy via tmp buffer prefetched (32 bytes step)", 1, aligned_block_copy_pf32_sse2 },
-    { "SSE2 copy via tmp buffer prefetched (64 bytes step)", 1, aligned_block_copy_pf64_sse2 },
+    { "SSE2 2-pass copy", 1, aligned_block_copy_sse2 },
+    { "SSE2 2-pass copy prefetched (32 bytes step)", 1, aligned_block_copy_pf32_sse2 },
+    { "SSE2 2-pass copy prefetched (64 bytes step)", 1, aligned_block_copy_pf64_sse2 },
     { "SSE2 fill", 0, aligned_block_fill_sse2 },
     { "SSE2 nontemporal fill", 0, aligned_block_fill_nt_sse2 },
     { NULL, 0, NULL }
@@ -194,18 +194,26 @@ static bench_info arm_neon[] =
     { "NEON copy", 0, aligned_block_copy_neon },
     { "NEON copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32_neon },
     { "NEON copy prefetched (64 bytes step)", 0, aligned_block_copy_pf64_neon },
+    { "NEON unrolled copy", 0, aligned_block_copy_unrolled_neon },
+    { "NEON unrolled copy prefetched (32 bytes step)", 0, aligned_block_copy_unrolled_pf32_neon },
+    { "NEON unrolled copy prefetched (64 bytes step)", 0, aligned_block_copy_unrolled_pf64_neon },
     { "NEON copy backwards", 0, aligned_block_copy_backwards_neon },
     { "NEON copy backwards prefetched (32 bytes step)", 0, aligned_block_copy_backwards_pf32_neon },
     { "NEON copy backwards prefetched (64 bytes step)", 0, aligned_block_copy_backwards_pf64_neon },
-    { "NEON copy via tmp buffer", 1, aligned_block_copy_neon },
-    { "NEON copy via tmp buffer prefetched (32 bytes step)", 1, aligned_block_copy_pf32_neon },
-    { "NEON copy via tmp buffer prefetched (64 bytes step)", 1, aligned_block_copy_pf64_neon },
+    { "NEON 2-pass copy", 1, aligned_block_copy_neon },
+    { "NEON 2-pass copy prefetched (32 bytes step)", 1, aligned_block_copy_pf32_neon },
+    { "NEON 2-pass copy prefetched (64 bytes step)", 1, aligned_block_copy_pf64_neon },
+    { "NEON unrolled 2-pass copy", 1, aligned_block_copy_unrolled_neon },
+    { "NEON unrolled 2-pass copy prefetched (32 bytes step)", 1, aligned_block_copy_unrolled_pf32_neon },
+    { "NEON unrolled 2-pass copy prefetched (64 bytes step)", 1, aligned_block_copy_unrolled_pf64_neon },
     { "NEON fill", 0, aligned_block_fill_neon },
     { "ARM fill (STRD)", 0, aligned_block_fill_strd_armv5te },
     { "ARM fill (STM with 8 registers)", 0, aligned_block_fill_stm8_armv4 },
     { "ARM fill (STM with 4 registers)", 0, aligned_block_fill_stm4_armv4 },
     { "ARM copy prefetched (incr pld)", 0, aligned_block_copy_incr_armv5te },
     { "ARM copy prefetched (wrap pld)", 0, aligned_block_copy_wrap_armv5te },
+    { "ARM 2-pass copy prefetched (incr pld)", 1, aligned_block_copy_incr_armv5te },
+    { "ARM 2-pass copy prefetched (wrap pld)", 1, aligned_block_copy_wrap_armv5te },
     { NULL, 0, NULL }
 };
 
@@ -216,6 +224,8 @@ static bench_info arm_v5te[] =
     { "ARM fill (STM with 4 registers)", 0, aligned_block_fill_stm4_armv4 },
     { "ARM copy prefetched (incr pld)", 0, aligned_block_copy_incr_armv5te },
     { "ARM copy prefetched (wrap pld)", 0, aligned_block_copy_wrap_armv5te },
+    { "ARM 2-pass copy prefetched (incr pld)", 1, aligned_block_copy_incr_armv5te },
+    { "ARM 2-pass copy prefetched (wrap pld)", 1, aligned_block_copy_wrap_armv5te },
     { NULL, 0, NULL }
 };
 

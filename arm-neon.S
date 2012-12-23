@@ -141,25 +141,91 @@ asm_function aligned_block_copy_neon
     bx          lr
 .endfunc
 
+asm_function aligned_block_copy_unrolled_neon
+    vpush       {d8-d15}
+    bic         SIZE, SIZE, #127
+0:
+    vld1.64     {q0, q1}, [SRC]!
+    vld1.64     {q2, q3}, [SRC]!
+    vld1.64     {q4, q5}, [SRC]!
+    vld1.64     {q6, q7}, [SRC]!
+    vst1.64     {q0, q1}, [DST, :256]!
+    vst1.64     {q2, q3}, [DST, :256]!
+    vst1.64     {q4, q5}, [DST, :256]!
+    vst1.64     {q6, q7}, [DST, :256]!
+    subs        SIZE, SIZE, #128
+    bgt         0b
+    vpop        {d8-d15}
+    bx          lr
+.endfunc
+
 asm_function aligned_block_copy_pf32_neon
 0:
-    vld1.8      {d0, d1, d2, d3}, [SRC]!
     pld         [SRC, #256]
+    vld1.8      {d0, d1, d2, d3}, [SRC]!
     vst1.8      {d0, d1, d2, d3}, [DST, :256]!
     subs        SIZE, SIZE, #32
     bgt         0b
     bx          lr
 .endfunc
 
+asm_function aligned_block_copy_unrolled_pf32_neon
+    vpush       {d8-d15}
+    bic         SIZE, SIZE, #127
+0:
+    vld1.64     {q0, q1}, [SRC]!
+    pld         [SRC, #256]
+    pld         [SRC, #256 + 32]
+    vld1.64     {q2, q3}, [SRC]!
+    pld         [SRC, #512]
+    pld         [SRC, #512 + 32]
+    vld1.64     {q4, q5}, [SRC]!
+    pld         [SRC, #256]
+    pld         [SRC, #256 + 32]
+    vld1.64     {q6, q7}, [SRC]!
+    pld         [SRC, #512]
+    pld         [SRC, #512 + 32]
+    vst1.64     {q0, q1}, [DST, :256]!
+    vst1.64     {q2, q3}, [DST, :256]!
+    vst1.64     {q4, q5}, [DST, :256]!
+    vst1.64     {q6, q7}, [DST, :256]!
+    subs        SIZE, SIZE, #128
+    bgt         0b
+    vpop        {d8-d15}
+    bx          lr
+.endfunc
+
 asm_function aligned_block_copy_pf64_neon
 0:
-    vld1.8      {d0, d1, d2, d3}, [SRC]!
-    vld1.8      {d4, d5, d6, d7}, [SRC]!
     pld         [SRC, #256]
+    vld1.8      {d0, d1, d2, d3}, [SRC]!
     vst1.8      {d0, d1, d2, d3}, [DST, :256]!
-    vst1.8      {d4, d5, d6, d7}, [DST, :256]!
+    vld1.8      {d0, d1, d2, d3}, [SRC]!
+    vst1.8      {d0, d1, d2, d3}, [DST, :256]!
     subs        SIZE, SIZE, #64
     bgt         0b
+    bx          lr
+.endfunc
+
+asm_function aligned_block_copy_unrolled_pf64_neon
+    vpush       {d8-d15}
+    bic         SIZE, SIZE, #127
+0:
+    vld1.64     {q0, q1}, [SRC]!
+    pld         [SRC, #256]
+    vld1.64     {q2, q3}, [SRC]!
+    pld         [SRC, #512]
+    vld1.64     {q4, q5}, [SRC]!
+    pld         [SRC, #256]
+    vld1.64     {q6, q7}, [SRC]!
+    pld         [SRC, #512]
+    vst1.64     {q0, q1}, [DST, :256]!
+    vst1.64     {q2, q3}, [DST, :256]!
+    vst1.64     {q4, q5}, [DST, :256]!
+    vst1.64     {q6, q7}, [DST, :256]!
+    subs        SIZE, SIZE, #128
+    bgt         0b
+    vpop        {d8-d15}
     bx          lr
 .endfunc
 
@@ -184,8 +250,8 @@ asm_function aligned_block_copy_backwards_pf32_neon
     sub         DST, DST, #32
     mov         r3, #-32
 0:
-    vld1.8      {d0, d1, d2, d3}, [SRC], r3
     pld         [SRC, #-256]
+    vld1.8      {d0, d1, d2, d3}, [SRC], r3
     vst1.8      {d0, d1, d2, d3}, [DST, :256], r3
     subs        SIZE, SIZE, #32
     bgt         0b
@@ -199,11 +265,11 @@ asm_function aligned_block_copy_backwards_pf64_neon
     sub         DST, DST, #32
     mov         r3, #-32
 0:
-    vld1.8      {d0, d1, d2, d3}, [SRC], r3
-    vld1.8      {d4, d5, d6, d7}, [SRC], r3
     pld         [SRC, #-256]
+    vld1.8      {d0, d1, d2, d3}, [SRC], r3
     vst1.8      {d0, d1, d2, d3}, [DST, :256], r3
-    vst1.8      {d4, d5, d6, d7}, [DST, :256], r3
+    vld1.8      {d0, d1, d2, d3}, [SRC], r3
+    vst1.8      {d0, d1, d2, d3}, [DST, :256], r3
     subs        SIZE, SIZE, #64
     bgt         0b
     bx          lr
