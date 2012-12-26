@@ -285,6 +285,19 @@ asm_function aligned_block_fill_neon
     bx          lr
 .endfunc
 
+asm_function aligned_block_fill_backwards_neon
+    add         SRC, SRC, SIZE
+    add         DST, DST, SIZE
+    sub         SRC, SRC, #32
+    sub         DST, DST, #32
+    mov         r3, #-32
+0:
+    vst1.8      {d0, d1, d2, d3}, [DST, :256], r3
+    subs        SIZE, SIZE, #32
+    bgt         0b
+    bx          lr
+.endfunc
+
 /* some code for older ARM processors */
 
 asm_function aligned_block_fill_stm4_armv4
