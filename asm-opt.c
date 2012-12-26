@@ -255,6 +255,7 @@ bench_info *get_asm_benchmarks(void)
 static bench_info mips_32[] =
 {
     { "MIPS32 copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32_mips32 },
+    { "MIPS32 2-pass copy prefetched (32 bytes step)", 1, aligned_block_copy_pf32_mips32 },
     { "MIPS32 fill prefetched (32 bytes step)", 0, aligned_block_fill_pf32_mips32 },
     { NULL, 0, NULL }
 };
