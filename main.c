@@ -471,7 +471,7 @@ int main(void)
     printf("== Note 1: All the numbers are representing extra time, which needs to  ==\n");
     printf("==         be added to L1 cache latency. The cycle timings for L1 cache ==\n");
     printf("==         latency can be usually found in the processor documentation. ==\n");
-    printf("== Note 1: Dual random read means that we are simultaneously performing ==\n");
+    printf("== Note 2: Dual random read means that we are simultaneously performing ==\n");
     printf("==         two independent memory accesses at a time. In the case if    ==\n");
     printf("==         the memory subsystem can't handle multiple outstanding       ==\n");
     printf("==         requests, dual random read has the same timings as two       ==\n");
