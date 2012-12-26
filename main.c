@@ -32,7 +32,7 @@
 #include "asm-opt.h"
 #include "version.h"
 
-#define SIZE             (16 * 1024 * 1024)
+#define SIZE             (32 * 1024 * 1024)
 #define BLOCKSIZE        2048
 #define COUNT            16
 #define MAXREPEATS       10
@@ -357,7 +357,10 @@ static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
 void latency_bench(int size, int count)
 {
     double t, t2, t_before, t_after, t_noaccess, t_noaccess2;
-    int nbits;
+    double xs, xs0, xs1, xs2;
+    double ys, ys0, ys1, ys2;
+    double min_t, min_t2;
+    int nbits, n;
     char *buffer, *buffer_alloc;
     buffer_alloc = (char *)malloc(size + 4095);
     if (!buffer_alloc)
@@ -365,31 +368,62 @@ void latency_bench(int size, int count)
     buffer = (char *)(((uintptr_t)buffer_alloc + 4095) & ~(uintptr_t)4095);
     memset(buffer, 0, size);
 
-    t_before = gettime();
-    random_read_test(buffer, count, 1);
-    t_after = gettime();
-    t_noaccess = t_after - t_before;
-
-    t_before = gettime();
-    random_dual_read_test(buffer, count, 1);
-    t_after = gettime();
-    t_noaccess2 = t_after - t_before;
-
-    printf("block size : read access time (single random read / dual random read)\n");
-    for (nbits = 1; (1 << nbits) <= size; nbits++)
+    for (n = 1; n <= MAXREPEATS; n++)
     {
         t_before = gettime();
-        random_read_test(buffer, count, nbits);
+        random_read_test(buffer, count, 1);
         t_after = gettime();
-        t = t_after - t_before - t_noaccess;
-        if (t < 0) t = 0;
+        if (n == 1 || t_after - t_before < t_noaccess)
+            t_noaccess = t_after - t_before;
+
         t_before = gettime();
-        random_dual_read_test(buffer, count, nbits);
+        random_dual_read_test(buffer, count, 1);
         t_after = gettime();
-        t2 = t_after - t_before - t_noaccess2;
-        if (t2 < 0) t2 = 0;
+        if (n == 1 || t_after - t_before < t_noaccess2)
+            t_noaccess2 = t_after - t_before;
+    }
+
+    printf("block size : read access time (single random read / dual random read)\n");
+
+    for (nbits = 1; (1 << nbits) <= size; nbits++)
+    {
+        xs1 = xs2 = ys = ys1 = ys2 = 0;
+        for (n = 1; n <= MAXREPEATS; n++)
+        {
+            t_before = gettime();
+            random_read_test(buffer, count, nbits);
+            t_after = gettime();
+            t = t_after - t_before - t_noaccess;
+            if (t < 0) t = 0;
+
+            xs1 += t;
+            xs2 += t * t;
+
+            if (n == 1 || t < min_t)
+                min_t = t;
+
+            t_before = gettime();
+            random_dual_read_test(buffer, count, nbits);
+            t_after = gettime();
+            t2 = t_after - t_before - t_noaccess2;
+            if (t2 < 0) t2 = 0;
+
+            ys1 += t2;
+            ys2 += t2 * t2;
+
+            if (n == 1 || t2 < min_t2)
+                min_t2 = t2;
+
+            if (n > 2)
+            {
+                xs = sqrt((xs2 * n - xs1 * xs1) / (n * (n - 1)));
+                ys = sqrt((ys2 * n - ys1 * ys1) / (n * (n - 1)));
+                if (xs < min_t / 1000. && ys < min_t2 / 1000.)
+                    break;
+            }
+        }
         printf("%10d : %6.1f ns  /  %6.1f ns \n", (1 << nbits),
-            t * 1000000000. / count,  t2 * 1000000000. / count);
+            min_t * 1000000000. / count,  min_t2 * 1000000000. / count);
     }
     free(buffer_alloc);
 }
@@ -423,11 +457,28 @@ int main(void)
     free(poolbuf);
 
     printf("\n");
-    printf("==========================\n");
-    printf("== Memory latency test ===\n");
-    printf("==========================\n\n");
+    printf("==========================================================================\n");
+    printf("== Memory latency test                                                  ==\n");
+    printf("==                                                                      ==\n");
+    printf("== Average time is measured for random memory accesses in the buffers   ==\n");
+    printf("== of different sizes. The larger is the buffer, the more significant   ==\n");
+    printf("== are relative contributions of TLB, L1/L2 cache misses and SDRAM      ==\n");
+    printf("== accesses. For extremely large buffer sizes we are expecting to see   ==\n");
+    printf("== page table walk with total 3 requests to SDRAM for almost every      ==\n");
+    printf("== memory access (though 64MiB is not large enough to experience this   ==\n");
+    printf("== effect to its fullest).                                              ==\n");
+    printf("==                                                                      ==\n");
+    printf("== Note 1: All the numbers are representing extra time, which needs to  ==\n");
+    printf("==         be added to L1 cache latency. The cycle timings for L1 cache ==\n");
+    printf("==         latency can be usually found in the processor documentation. ==\n");
+    printf("== Note 1: Dual random read means that we are simultaneously performing ==\n");
+    printf("==         two independent memory accesses at a time. In the case if    ==\n");
+    printf("==         the memory subsystem can't handle multiple outstanding       ==\n");
+    printf("==         requests, dual random read has the same timings as two       ==\n");
+    printf("==         single reads performed one after another.                    ==\n");
+    printf("==========================================================================\n\n");
 
-    latency_bench(SIZE * 4, 10000000);
+    latency_bench(SIZE * 2, 10000000);
 
     return 0;
 }
