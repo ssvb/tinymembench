@@ -433,7 +433,7 @@ int main(void)
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
 
-    printf("ssvb-membench v" VERSION " (simple benchmark for memory throughput and latency)\n");
+    printf("tinymembench v" VERSION " (simple benchmark for memory throughput and latency)\n");
 
     poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, SIZE,
                                             (void **)&dstbuf, SIZE,

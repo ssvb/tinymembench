@@ -15,5 +15,5 @@ Example of crosscompiling for ARM (also in linux):
 
 Example of crosscompiling and running the benchmark on android device:
     $ CC=arm-none-linux-gnueabi-gcc CFLAGS="-O2 -mcpu=cortex-a8 -static" make
-    $ adb push ssvb-membench /data/local/tmp/ssvb-membench
-    $ adb shell /data/local/tmp/ssvb-membench
+    $ adb push tinymembench /data/local/tmp/tinymembench
+    $ adb shell /data/local/tmp/tinymembench
