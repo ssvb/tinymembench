@@ -3,6 +3,9 @@ bandwidth of sequential memory accesses and the latency of random memory
 accesses. Bandwidth is measured by running different assembly code for
 the aligned memory blocks and attempting different prefetch strategies.
 
+The benchmark results for some hardware can be found in the wiki page:
+    https://github.com/ssvb/tinymembench/wiki
+
 This program can be compiled in either linux or windows (via mingw32 and msys)
 by simply running make:
     $ make
