@@ -198,11 +198,11 @@ static void __attribute__((noinline)) random_read_test(char *zerobuffer,
     "0:\n"
         "subs %[count], %[count],       #16\n"
     ".rept 16\n"
-        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "mla  %[seed],  %[c1103515245], %[seed],        %[c12345]\n"
         "and  %[v],     %[xFF],         %[seed],        lsr #16\n"
-        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "mla  %[seed],  %[c1103515245], %[seed],        %[c12345]\n"
         "and  %[tmp],   %[xFF00],       %[seed],        lsr #8\n"
-        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "mla  %[seed],  %[c1103515245], %[seed],        %[c12345]\n"
         "orr  %[v],     %[v],           %[tmp]\n"
         "and  %[tmp],   %[x7FFF0000],   %[seed]\n"
         "orr  %[v],     %[v],           %[tmp]\n"
@@ -222,8 +222,7 @@ static void __attribute__((noinline)) random_read_test(char *zerobuffer,
           [zerobuffer] "r" (zerobuffer),
           [addrmask] "r" (addrmask)
         : "cc");
-#endif
-
+#else
     #define RANDOM_MEM_ACCESS()                 \
         seed = seed * 1103515245 + 12345;       \
         v = (seed >> 16) & 0xFF;                \
@@ -252,9 +251,7 @@ static void __attribute__((noinline)) random_read_test(char *zerobuffer,
         RANDOM_MEM_ACCESS();
         count -= 16;
     }
-    while (count-- > 0) {
-        RANDOM_MEM_ACCESS();
-    }
+#endif
     dummy = seed;
     #undef RANDOM_MEM_ACCESS
 }
@@ -275,16 +272,16 @@ static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
     "0:\n"
         "subs %[count], %[count],       #16\n"
     ".rept 16\n"
-        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "mla  %[seed],  %[c1103515245], %[seed],        %[c12345]\n"
         "and  %[v1],    %[xFF00],       %[seed],        lsr #8\n"
-        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "mla  %[seed],  %[c1103515245], %[seed],        %[c12345]\n"
         "and  %[v2],    %[xFF00],       %[seed],        lsr #8\n"
-        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "mla  %[seed],  %[c1103515245], %[seed],        %[c12345]\n"
         "and  %[tmp],   %[x7FFF0000],   %[seed]\n"
-        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "mla  %[seed],  %[c1103515245], %[seed],        %[c12345]\n"
         "orr  %[v1],    %[v1],          %[tmp]\n"
         "and  %[tmp],   %[x7FFF0000],   %[seed]\n"
-        "mla  %[seed],  %[seed],        %[c1103515245], %[c12345]\n"
+        "mla  %[seed],  %[c1103515245], %[seed],        %[c12345]\n"
         "orr  %[v2],    %[v2],          %[tmp]\n"
         "and  %[tmp],   %[xFF],         %[seed],        lsr #16\n"
         "orr  %[v2],    %[v2],          %[seed],        lsr #24\n"
@@ -309,8 +306,7 @@ static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
           [zerobuffer] "r" (zerobuffer),
           [addrmask] "r" (addrmask)
         : "cc");
-#endif
-
+#else
     #define RANDOM_MEM_ACCESS()                 \
         seed = seed * 1103515245 + 12345;       \
         v1 = (seed >> 8) & 0xFF00;              \
@@ -347,9 +343,7 @@ static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
         RANDOM_MEM_ACCESS();
         count -= 16;
     }
-    while (count-- > 0) {
-        RANDOM_MEM_ACCESS();
-    }
+#endif
     dummy = seed;
     #undef RANDOM_MEM_ACCESS
 }
