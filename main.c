@@ -348,6 +348,15 @@ static void __attribute__((noinline)) random_dual_read_test(char *zerobuffer,
     #undef RANDOM_MEM_ACCESS
 }
 
+static uint32_t rand32()
+{
+    static int seed = 0;
+    uint32_t hi, lo;
+    hi = (seed = seed * 1103515245 + 12345) >> 16;
+    lo = (seed = seed * 1103515245 + 12345) >> 16;
+    return (hi << 16) + lo;
+}
+
 void latency_bench(int size, int count)
 {
     double t, t2, t_before, t_after, t_noaccess, t_noaccess2;
@@ -381,11 +390,21 @@ void latency_bench(int size, int count)
 
     for (nbits = 1; (1 << nbits) <= size; nbits++)
     {
+        int testsize = 1 << nbits;
         xs1 = xs2 = ys = ys1 = ys2 = 0;
         for (n = 1; n <= MAXREPEATS; n++)
         {
+            /*
+             * Select a random offset in order to mitigate the unpredictability
+             * of cache associativity effects when dealing with different
+             * physical memory fragmentation (for PIPT caches). We are reporting
+             * the "best" measured latency, some offsets may be better than
+             * the others.
+             */
+            int testoffs = (rand32() % (size / testsize)) * testsize;
+
             t_before = gettime();
-            random_read_test(buffer, count, nbits);
+            random_read_test(buffer + testoffs, count, nbits);
             t_after = gettime();
             t = t_after - t_before - t_noaccess;
             if (t < 0) t = 0;
@@ -397,7 +416,7 @@ void latency_bench(int size, int count)
                 min_t = t;
 
             t_before = gettime();
-            random_dual_read_test(buffer, count, nbits);
+            random_dual_read_test(buffer + testoffs, count, nbits);
             t_after = gettime();
             t2 = t_after - t_before - t_noaccess2;
             if (t2 < 0) t2 = 0;
