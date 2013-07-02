@@ -28,6 +28,10 @@
 #include <math.h>
 #include <sys/time.h>
 
+#ifdef __linux__
+#include <sys/mman.h>
+#endif
+
 #include "util.h"
 #include "asm-opt.h"
 #include "version.h"
@@ -357,7 +361,7 @@ static uint32_t rand32()
     return (hi << 16) + lo;
 }
 
-void latency_bench(int size, int count)
+int latency_bench(int size, int count, int use_hugepage)
 {
     double t, t2, t_before, t_after, t_noaccess, t_noaccess2;
     double xs, xs0, xs1, xs2;
@@ -365,10 +369,24 @@ void latency_bench(int size, int count)
     double min_t, min_t2;
     int nbits, n;
     char *buffer, *buffer_alloc;
+#if !defined(__linux__) || !defined(MADV_HUGEPAGE)
+    if (use_hugepage)
+        return 0;
     buffer_alloc = (char *)malloc(size + 4095);
     if (!buffer_alloc)
-        return;
+        return 0;
     buffer = (char *)(((uintptr_t)buffer_alloc + 4095) & ~(uintptr_t)4095);
+#else
+    if (posix_memalign((void **)&buffer_alloc, 4 * 1024 * 1024, size) != 0)
+        return 0;
+    buffer = buffer_alloc;
+    if (use_hugepage && madvise(buffer, size, use_hugepage > 0 ?
+                                MADV_HUGEPAGE : MADV_NOHUGEPAGE) != 0)
+    {
+        free(buffer_alloc);
+        return 0;
+    }
+#endif
     memset(buffer, 0, size);
 
     for (n = 1; n <= MAXREPEATS; n++)
@@ -386,9 +404,15 @@ void latency_bench(int size, int count)
             t_noaccess2 = t_after - t_before;
     }
 
-    printf("block size : read access time (single random read / dual random read)\n");
+    printf("\nblock size : single random read / dual random read");
+    if (use_hugepage > 0)
+        printf(", [MADV_HUGEPAGE]\n");
+    else if (use_hugepage < 0)
+        printf(", [MADV_NOHUGEPAGE]\n");
+    else
+        printf("\n");
 
-    for (nbits = 1; (1 << nbits) <= size; nbits++)
+    for (nbits = 10; (1 << nbits) <= size; nbits++)
     {
         int testsize = 1 << nbits;
         xs1 = xs2 = ys = ys1 = ys2 = 0;
@@ -435,14 +459,16 @@ void latency_bench(int size, int count)
                     break;
             }
         }
-        printf("%10d : %6.1f ns  /  %6.1f ns \n", (1 << nbits),
+        printf("%10d : %6.1f ns          /  %6.1f ns \n", (1 << nbits),
             min_t * 1000000000. / count,  min_t2 * 1000000000. / count);
     }
     free(buffer_alloc);
+    return 1;
 }
 
 int main(void)
 {
+    int latbench_size = SIZE * 2, latbench_count = 10000000;
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
 
@@ -477,9 +503,9 @@ int main(void)
     printf("== of different sizes. The larger is the buffer, the more significant   ==\n");
     printf("== are relative contributions of TLB, L1/L2 cache misses and SDRAM      ==\n");
     printf("== accesses. For extremely large buffer sizes we are expecting to see   ==\n");
-    printf("== page table walk with total 3 requests to SDRAM for almost every      ==\n");
-    printf("== memory access (though 64MiB is not large enough to experience this   ==\n");
-    printf("== effect to its fullest).                                              ==\n");
+    printf("== page table walk with several requests to SDRAM for almost every      ==\n");
+    printf("== memory access (though 64MiB is not nearly large enough to experience ==\n");
+    printf("== this effect to its fullest).                                         ==\n");
     printf("==                                                                      ==\n");
     printf("== Note 1: All the numbers are representing extra time, which needs to  ==\n");
     printf("==         be added to L1 cache latency. The cycle timings for L1 cache ==\n");
@@ -489,9 +515,13 @@ int main(void)
     printf("==         the memory subsystem can't handle multiple outstanding       ==\n");
     printf("==         requests, dual random read has the same timings as two       ==\n");
     printf("==         single reads performed one after another.                    ==\n");
-    printf("==========================================================================\n\n");
+    printf("==========================================================================\n");
 
-    latency_bench(SIZE * 2, 10000000);
+    if (!latency_bench(latbench_size, latbench_count, -1) ||
+        !latency_bench(latbench_size, latbench_count, 1))
+    {
+        latency_bench(latbench_size, latbench_count, 0);
+    }
 
     return 0;
 }
