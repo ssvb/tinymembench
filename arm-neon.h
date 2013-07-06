@@ -41,6 +41,17 @@ void aligned_block_read_pf64_neon(int64_t * __restrict dst,
                                   int64_t * __restrict src,
                                   int                  size);
 
+void aligned_block_read2_neon(int64_t * __restrict dst,
+                              int64_t * __restrict src,
+                              int                  size);
+
+void aligned_block_read2_pf32_neon(int64_t * __restrict dst,
+                                   int64_t * __restrict src,
+                                   int                  size);
+void aligned_block_read2_pf64_neon(int64_t * __restrict dst,
+                                   int64_t * __restrict src,
+                                   int                  size);
+
 void aligned_block_copy_neon(int64_t * __restrict dst,
                              int64_t * __restrict src,
                              int                  size);
