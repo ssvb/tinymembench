@@ -127,6 +127,8 @@ static bench_info empty[] = { { NULL, 0, NULL } };
 
 static bench_info x86_sse2[] =
 {
+    { "MOVSB copy", 0, aligned_block_copy_movsb },
+    { "MOVSD copy", 0, aligned_block_copy_movsd },
     { "SSE2 copy", 0, aligned_block_copy_sse2 },
     { "SSE2 nontemporal copy", 0, aligned_block_copy_nt_sse2 },
     { "SSE2 copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32_sse2 },

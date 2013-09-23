@@ -54,7 +54,57 @@
 #endif
 .endm
 
+.macro push3 a, b, c
+    push \a
+    push \b
+    push \c
+.endm
+
+.macro pop3 a, b, c
+    pop \c
+    pop \b
+    pop \a
+.endm
+
 /*****************************************************************************/
+
+asm_function aligned_block_copy_movsb
+0:
+#ifdef __amd64__
+    push3       rdi rsi rcx
+    push3       DST SRC SIZE
+    pop3        rdi rsi rcx
+    rep movsb
+    pop3        rdi rsi rcx
+#else
+    push3       edi esi ecx
+    push3       DST SRC SIZE
+    pop3        edi esi ecx
+    rep movsb
+    pop3        edi esi ecx
+#endif
+    ret
+.endfunc
+
+asm_function aligned_block_copy_movsd
+0:
+#ifdef __amd64__
+    push3       rdi rsi rcx
+    push3       DST SRC SIZE
+    pop3        rdi rsi rcx
+    sar         rcx, 2
+    rep movsd
+    pop3        rdi rsi rcx
+#else
+    push3       edi esi ecx
+    push3       DST SRC SIZE
+    pop3        edi esi ecx
+    sar         ecx, 2
+    rep movsd
+    pop3        edi esi ecx
+#endif
+    ret
+.endfunc
 
 asm_function aligned_block_copy_sse2
 0:
