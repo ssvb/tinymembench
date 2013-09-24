@@ -29,6 +29,9 @@
 #include <sys/time.h>
 
 #ifdef __linux__
+#include <unistd.h>
+#include <fcntl.h>
+#include <linux/fb.h>
 #include <sys/mman.h>
 #endif
 
@@ -40,6 +43,28 @@
 #define BLOCKSIZE        2048
 #define COUNT            16
 #define MAXREPEATS       10
+
+#ifdef BENCH_FRAMEBUFFER
+static void *mmap_framebuffer(size_t *fbsize)
+{
+    int fd;
+    void *p;
+    struct fb_fix_screeninfo finfo;
+
+    if ((fd = open("/dev/fb0", O_RDWR)) == -1)
+        return NULL;
+
+    if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo))
+        return NULL;
+
+    p = mmap(0, finfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (p == (void *)-1)
+        return NULL;
+
+    *fbsize = finfo.smem_len;
+    return p;
+}
+#endif
 
 static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
                                      int64_t *tmpbuf,
@@ -471,13 +496,30 @@ int main(void)
     int latbench_size = SIZE * 2, latbench_count = 10000000;
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
+    size_t bufsize = SIZE;
+#ifdef BENCH_FRAMEBUFFER
+    size_t fbsize;
+    int64_t *fbbuf = mmap_framebuffer(&fbsize);
+    fbsize = (fbsize / BLOCKSIZE) * BLOCKSIZE;
+#endif
 
     printf("tinymembench v" VERSION " (simple benchmark for memory throughput and latency)\n");
 
-    poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, SIZE,
-                                            (void **)&dstbuf, SIZE,
+
+    poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, bufsize,
+                                            (void **)&dstbuf, bufsize,
                                             (void **)&tmpbuf, BLOCKSIZE,
                                             NULL, 0);
+#ifdef BENCH_FRAMEBUFFER
+    if (fbbuf)
+    {
+        printf("(*) using framebuffer as the source buffer (size=%d)\n", (int)fbsize);
+        srcbuf = fbbuf;
+        if (bufsize > fbsize)
+            bufsize = fbsize;
+    }
+#endif
+
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory bandwidth tests                                               ==\n");
@@ -492,7 +534,7 @@ int main(void)
     printf("== Note 4: If sample standard deviation exceeds 0.1%%, it is shown in    ==\n");
     printf("==         brackets                                                     ==\n");
     printf("==========================================================================\n\n");
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, SIZE, BLOCKSIZE, " ");
+    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ");
     free(poolbuf);
 
     printf("\n");
