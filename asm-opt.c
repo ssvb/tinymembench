@@ -214,6 +214,22 @@ static bench_info arm_neon[] =
     { "NEON unrolled 2-pass copy prefetched (64 bytes step)", 1, aligned_block_copy_unrolled_pf64_neon },
     { "NEON fill", 0, aligned_block_fill_neon },
     { "NEON fill backwards", 0, aligned_block_fill_backwards_neon },
+    { "VFP copy", 0, aligned_block_copy_vfp },
+    { "VFP 2-pass copy", 1, aligned_block_copy_vfp },
+    { "ARM fill (STRD)", 0, aligned_block_fill_strd_armv5te },
+    { "ARM fill (STM with 8 registers)", 0, aligned_block_fill_stm8_armv4 },
+    { "ARM fill (STM with 4 registers)", 0, aligned_block_fill_stm4_armv4 },
+    { "ARM copy prefetched (incr pld)", 0, aligned_block_copy_incr_armv5te },
+    { "ARM copy prefetched (wrap pld)", 0, aligned_block_copy_wrap_armv5te },
+    { "ARM 2-pass copy prefetched (incr pld)", 1, aligned_block_copy_incr_armv5te },
+    { "ARM 2-pass copy prefetched (wrap pld)", 1, aligned_block_copy_wrap_armv5te },
+    { NULL, 0, NULL }
+};
+
+static bench_info arm_v5te_vfp[] =
+{
+    { "VFP copy", 0, aligned_block_copy_vfp },
+    { "VFP 2-pass copy", 1, aligned_block_copy_vfp },
     { "ARM fill (STRD)", 0, aligned_block_fill_strd_armv5te },
     { "ARM fill (STM with 8 registers)", 0, aligned_block_fill_stm8_armv4 },
     { "ARM fill (STM with 4 registers)", 0, aligned_block_fill_stm4_armv4 },
@@ -247,6 +263,8 @@ bench_info *get_asm_benchmarks(void)
 {
     if (check_cpu_feature("neon"))
         return arm_neon;
+    else if (check_cpu_feature("edsp") && check_cpu_feature("vfp"))
+        return arm_v5te_vfp;
     else if (check_cpu_feature("edsp"))
         return arm_v5te;
     else

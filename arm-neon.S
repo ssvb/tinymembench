@@ -460,4 +460,16 @@ asm_function aligned_block_copy_wrap_armv5te
     pop         {r4-r12, pc}
 .endfunc
 
+asm_function aligned_block_copy_vfp
+    push        {r4-r12, lr}
+    vpush       {d8-d15}
+0:
+    subs        SIZE, SIZE, #128
+    vldm        SRC!, {d0-d15}
+    vstm        DST!, {d0-d15}
+    bgt         0b
+    vpop        {d8-d15}
+    pop         {r4-r12, pc}
+.endfunc
+
 #endif
