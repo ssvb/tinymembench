@@ -45,23 +45,31 @@
 #define MAXREPEATS       10
 
 #ifdef BENCH_FRAMEBUFFER
-static void *mmap_framebuffer(size_t *fbsize)
 {
     int fd;
     void *p;
+    struct fb_var_screeninfo vinfo;
     struct fb_fix_screeninfo finfo;
 
     if ((fd = open("/dev/fb0", O_RDWR)) == -1)
         return NULL;
 
+    if (ioctl(fd, FBIOGET_VSCREENINFO, &vinfo))
+            return NULL;
+
     if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo))
         return NULL;
 
-    p = mmap(0, finfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    printf("fb resolution: %dx%d virtual resolution: %dx%d, line_length %d, bpp %d\n",
+        		vinfo.xres, vinfo.yres,
+        		vinfo.xres_virtual, vinfo.yres_virtual,
+        		finfo.line_length, vinfo.bits_per_pixel);
+
+    p = mmap(0, vinfo.yres_virtual * finfo.line_length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (p == (void *)-1)
         return NULL;
 
-    *fbsize = finfo.smem_len;
+    *fbsize = vinfo.yres_virtual * finfo.line_length;
     return p;
 }
 #endif
