@@ -149,77 +149,35 @@ void memset_wrapper(int64_t *dst, int64_t *src, int size)
     memset(dst, src[0], size);
 }
 
-void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
-                     int size, int blocksize, const char *indent_prefix)
+static bench_info c_benchmarks[] =
 {
-    bench_info *bi = get_asm_benchmarks();
+    { "C copy backwards", 0, aligned_block_copy_backwards },
+    { "C copy backwards (32 byte blocks)", 0, aligned_block_copy_backwards_bs32 },
+    { "C copy backwards (64 byte blocks)", 0, aligned_block_copy_backwards_bs64 },
+    { "C copy", 0, aligned_block_copy },
+    { "C copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32 },
+    { "C copy prefetched (64 bytes step)", 0, aligned_block_copy_pf64 },
+    { "C 2-pass copy", 1, aligned_block_copy },
+    { "C 2-pass copy prefetched (32 bytes step)", 1, aligned_block_copy_pf32 },
+    { "C 2-pass copy prefetched (64 bytes step)", 1, aligned_block_copy_pf64 },
+    { "C fill", 0, aligned_block_fill },
+    { "C fill (shuffle within 16 byte blocks)", 0, aligned_block_fill_shuffle16 },
+    { "C fill (shuffle within 32 byte blocks)", 0, aligned_block_fill_shuffle32 },
+    { "C fill (shuffle within 64 byte blocks)", 0, aligned_block_fill_shuffle64 },
+    { NULL, 0, NULL }
+};
 
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_copy_backwards,
-                           "C copy backwards");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_copy_backwards_bs32,
-                           "C copy backwards (32 byte blocks)");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_copy_backwards_bs64,
-                           "C copy backwards (64 byte blocks)");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_copy,
-                           "C copy");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_copy_pf32,
-                           "C copy prefetched (32 bytes step)");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_copy_pf64,
-                           "C copy prefetched (64 bytes step)");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 1,
-                           aligned_block_copy,
-                           "C 2-pass copy");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 1,
-                           aligned_block_copy_pf32,
-                           "C 2-pass copy prefetched (32 bytes step)");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 1,
-                           aligned_block_copy_pf64,
-                           "C 2-pass copy prefetched (64 bytes step)");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_fill,
-                           "C fill");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_fill_shuffle16,
-                           "C fill (shuffle within 16 byte blocks)");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_fill_shuffle32,
-                           "C fill (shuffle within 32 byte blocks)");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           aligned_block_fill_shuffle64,
-                           "C fill (shuffle within 64 byte blocks)");
+static bench_info libc_benchmarks[] =
+{
+    { "standard memcpy", 0, memcpy_wrapper },
+    { "standard memset", 0, memset_wrapper },
+    { NULL, 0, NULL }
+};
 
-    printf("%s---\n", indent_prefix);
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           memcpy_wrapper,
-                           "standard memcpy");
-    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
-                           indent_prefix, 0,
-                           memset_wrapper,
-                           "standard memset");
-
-    if (bi->f)
-        printf("%s---\n", indent_prefix);
-
+void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
+                     int size, int blocksize, const char *indent_prefix,
+                     bench_info *bi)
+{
     while (bi->f)
     {
         bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
@@ -228,7 +186,6 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
                                bi->description);
         bi++;
     }
-
 }
 
 static void __attribute__((noinline)) random_read_test(char *zerobuffer,
@@ -554,7 +511,15 @@ int main(void)
     printf("== Note 4: If sample standard deviation exceeds 0.1%%, it is shown in    ==\n");
     printf("==         brackets                                                     ==\n");
     printf("==========================================================================\n\n");
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ");
+
+    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_benchmarks);
+    printf(" ---\n");
+    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", libc_benchmarks);
+    bench_info *bi = get_asm_benchmarks();
+    if (bi->f) {
+        printf(" ---\n");
+        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
+    }
     free(poolbuf);
 
     printf("\n");
