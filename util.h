@@ -36,6 +36,12 @@ void aligned_block_copy(int64_t * __restrict dst,
 void aligned_block_copy_backwards(int64_t * __restrict dst,
                                   int64_t * __restrict src,
                                   int                  size);
+void aligned_block_copy_backwards_bs32(int64_t * __restrict dst,
+                                       int64_t * __restrict src,
+                                       int                  size);
+void aligned_block_copy_backwards_bs64(int64_t * __restrict dst,
+                                       int64_t * __restrict src,
+                                       int                  size);
 
 void aligned_block_copy_pf32(int64_t * __restrict dst,
                              int64_t * __restrict src,

@@ -84,6 +84,76 @@ void aligned_block_copy_backwards(int64_t * __restrict dst_,
     }
 }
 
+/*
+ * Walk memory addresses in the backwards direction, but still
+ * copy each individual 32 byte block in the forward direction.
+ */
+void aligned_block_copy_backwards_bs32(int64_t * __restrict dst_,
+                                       int64_t * __restrict src,
+                                       int                  size)
+{
+    volatile int64_t *dst = dst_;
+    int64_t t1, t2, t3, t4;
+    src += size / 8 - 8;
+    dst += size / 8 - 8;
+    while ((size -= 64) >= 0)
+    {
+        t1 = src[4];
+        t2 = src[5];
+        t3 = src[6];
+        t4 = src[7];
+        dst[4] = t1;
+        dst[5] = t2;
+        dst[6] = t3;
+        dst[7] = t4;
+        t1 = src[0];
+        t2 = src[1];
+        t3 = src[2];
+        t4 = src[3];
+        dst[0] = t1;
+        dst[1] = t2;
+        dst[2] = t3;
+        dst[3] = t4;
+        src -= 8;
+        dst -= 8;
+    }
+}
+
+/*
+ * Walk memory addresses in the backwards direction, but still
+ * copy each individual 64 byte block in the forward direction.
+ */
+void aligned_block_copy_backwards_bs64(int64_t * __restrict dst_,
+                                       int64_t * __restrict src,
+                                       int                  size)
+{
+    volatile int64_t *dst = dst_;
+    int64_t t1, t2, t3, t4;
+    src += size / 8 - 8;
+    dst += size / 8 - 8;
+    while ((size -= 64) >= 0)
+    {
+        t1 = src[0];
+        t2 = src[1];
+        t3 = src[2];
+        t4 = src[3];
+        dst[0] = t1;
+        dst[1] = t2;
+        dst[2] = t3;
+        dst[3] = t4;
+        t1 = src[4];
+        t2 = src[5];
+        t3 = src[6];
+        t4 = src[7];
+        dst[4] = t1;
+        dst[5] = t2;
+        dst[6] = t3;
+        dst[7] = t4;
+        src -= 8;
+        dst -= 8;
+    }
+}
+
 void aligned_block_copy_pf32(int64_t * __restrict dst_,
                              int64_t * __restrict src,
                              int                  size)

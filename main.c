@@ -160,6 +160,14 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
                            "C copy backwards");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
                            indent_prefix, 0,
+                           aligned_block_copy_backwards_bs32,
+                           "C copy backwards (32 byte blocks)");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           aligned_block_copy_backwards_bs64,
+                           "C copy backwards (64 byte blocks)");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
                            aligned_block_copy,
                            "C copy");
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
