@@ -28,10 +28,11 @@
 
 #include "util.h"
 
-void aligned_block_copy(int64_t * __restrict dst,
+void aligned_block_copy(int64_t * __restrict dst_,
                         int64_t * __restrict src,
                         int                  size)
 {
+    volatile int64_t *dst = dst_;
     int64_t t1, t2, t3, t4;
     while ((size -= 64) >= 0)
     {
@@ -54,10 +55,11 @@ void aligned_block_copy(int64_t * __restrict dst,
     }
 }
 
-void aligned_block_copy_backwards(int64_t * __restrict dst,
+void aligned_block_copy_backwards(int64_t * __restrict dst_,
                                   int64_t * __restrict src,
                                   int                  size)
 {
+    volatile int64_t *dst = dst_;
     int64_t t1, t2, t3, t4;
     src += size / 8 - 1;
     dst += size / 8 - 1;
@@ -82,10 +84,11 @@ void aligned_block_copy_backwards(int64_t * __restrict dst,
     }
 }
 
-void aligned_block_copy_pf32(int64_t * __restrict dst,
+void aligned_block_copy_pf32(int64_t * __restrict dst_,
                              int64_t * __restrict src,
                              int                  size)
 {
+    volatile int64_t *dst = dst_;
     int64_t t1, t2, t3, t4;
     while ((size -= 64) >= 0)
     {
@@ -110,10 +113,11 @@ void aligned_block_copy_pf32(int64_t * __restrict dst,
     }
 }
 
-void aligned_block_copy_pf64(int64_t * __restrict dst,
+void aligned_block_copy_pf64(int64_t * __restrict dst_,
                              int64_t * __restrict src,
                              int                  size)
 {
+    volatile int64_t *dst = dst_;
     int64_t t1, t2, t3, t4;
     while ((size -= 64) >= 0)
     {
@@ -137,10 +141,11 @@ void aligned_block_copy_pf64(int64_t * __restrict dst,
     }
 }
 
-void aligned_block_fill(int64_t * __restrict dst,
+void aligned_block_fill(int64_t * __restrict dst_,
                         int64_t * __restrict src,
                         int                  size)
 {
+    volatile int64_t *dst = dst_;
     int64_t data = *src;
     while ((size -= 64) >= 0)
     {
