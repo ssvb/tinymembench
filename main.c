@@ -186,6 +186,18 @@ void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
                            indent_prefix, 0,
                            aligned_block_fill,
                            "C fill");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           aligned_block_fill_shuffle16,
+                           "C fill (shuffle within 16 byte blocks)");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           aligned_block_fill_shuffle32,
+                           "C fill (shuffle within 32 byte blocks)");
+    bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+                           indent_prefix, 0,
+                           aligned_block_fill_shuffle64,
+                           "C fill (shuffle within 64 byte blocks)");
 
     printf("%s---\n", indent_prefix);
     bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,

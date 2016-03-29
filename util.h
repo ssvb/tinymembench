@@ -47,6 +47,15 @@ void aligned_block_copy_pf64(int64_t * __restrict dst,
 void aligned_block_fill(int64_t * __restrict dst,
                         int64_t * __restrict src,
                         int                  size);
+void aligned_block_fill_shuffle16(int64_t * __restrict dst,
+                                  int64_t * __restrict src,
+                                  int                  size);
+void aligned_block_fill_shuffle32(int64_t * __restrict dst,
+                                  int64_t * __restrict src,
+                                  int                  size);
+void aligned_block_fill_shuffle64(int64_t * __restrict dst,
+                                  int64_t * __restrict src,
+                                  int                  size);
 
 void *alloc_four_nonaliased_buffers(void **buf1, int size1,
                                     void **buf2, int size2,

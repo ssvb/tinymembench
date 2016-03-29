@@ -160,6 +160,72 @@ void aligned_block_fill(int64_t * __restrict dst_,
     }
 }
 
+/*
+ * Simulate reshuffled memory write accesses to the destination
+ * buffer (a kind of "drunken master style" access pattern).
+ *
+ * See: https://github.com/ssvb/tinymembench/issues/7
+ */
+void aligned_block_fill_shuffle16(int64_t * __restrict dst_,
+                                  int64_t * __restrict src,
+                                  int                  size)
+{
+    volatile int64_t *dst = dst_;
+    int64_t data = *src;
+    while ((size -= 64) >= 0)
+    {
+        dst[0 + 0] = data;
+        dst[1 + 0] = data;
+        dst[1 + 2] = data;
+        dst[0 + 2] = data;
+        dst[1 + 4] = data;
+        dst[0 + 4] = data;
+        dst[0 + 6] = data;
+        dst[1 + 6] = data;
+        dst += 8;
+    }
+}
+
+void aligned_block_fill_shuffle32(int64_t * __restrict dst_,
+                                  int64_t * __restrict src,
+                                  int                  size)
+{
+    volatile int64_t *dst = dst_;
+    int64_t data = *src;
+    while ((size -= 64) >= 0)
+    {
+        dst[3 + 0] = data;
+        dst[0 + 0] = data;
+        dst[2 + 0] = data;
+        dst[1 + 0] = data;
+        dst[3 + 4] = data;
+        dst[0 + 4] = data;
+        dst[2 + 4] = data;
+        dst[1 + 4] = data;
+        dst += 8;
+    }
+}
+
+void aligned_block_fill_shuffle64(int64_t * __restrict dst_,
+                                  int64_t * __restrict src,
+                                  int                  size)
+{
+    volatile int64_t *dst = dst_;
+    int64_t data = *src;
+    while ((size -= 64) >= 0)
+    {
+        dst[5] = data;
+        dst[2] = data;
+        dst[7] = data;
+        dst[6] = data;
+        dst[1] = data;
+        dst[3] = data;
+        dst[0] = data;
+        dst[4] = data;
+        dst += 8;
+    }
+}
+
 double gettime(void)
 {
     struct timeval tv;
