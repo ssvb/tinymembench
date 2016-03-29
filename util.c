@@ -126,7 +126,6 @@ void aligned_block_copy_pf64(int64_t * __restrict dst,
         *dst++ = t2;
         *dst++ = t3;
         *dst++ = t4;
-        __builtin_prefetch(src + 32, 0, 0);
         t1 = *src++;
         t2 = *src++;
         t3 = *src++;
