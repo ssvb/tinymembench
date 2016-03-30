@@ -43,7 +43,7 @@
 #define BLOCKSIZE        2048
 #define MAXREPEATS       10
 
-#ifdef BENCH_FRAMEBUFFER
+#ifdef __linux__
 static void *mmap_framebuffer(size_t *fbsize)
 {
     int fd;
@@ -475,7 +475,7 @@ int main(void)
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
     size_t bufsize = SIZE;
-#ifdef BENCH_FRAMEBUFFER
+#ifdef __linux__
     size_t fbsize;
     int64_t *fbbuf = mmap_framebuffer(&fbsize);
     fbsize = (fbsize / BLOCKSIZE) * BLOCKSIZE;
@@ -488,16 +488,6 @@ int main(void)
                                             (void **)&dstbuf, bufsize,
                                             (void **)&tmpbuf, BLOCKSIZE,
                                             NULL, 0);
-#ifdef BENCH_FRAMEBUFFER
-    if (fbbuf)
-    {
-        printf("(*) using framebuffer as the source buffer (size=%d)\n", (int)fbsize);
-        srcbuf = fbbuf;
-        if (bufsize > fbsize)
-            bufsize = fbsize;
-    }
-#endif
-
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory bandwidth tests                                               ==\n");
@@ -521,6 +511,39 @@ int main(void)
         printf(" ---\n");
         bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
     }
+
+#ifdef __linux__
+    bi = get_asm_framebuffer_benchmarks();
+    if (bi->f && fbbuf)
+    {
+        printf("\n");
+        printf("==========================================================================\n");
+        printf("== Framebuffer read tests.                                              ==\n");
+        printf("==                                                                      ==\n");
+        printf("== Many ARM devices use a part of the system memory as the framebuffer, ==\n");
+        printf("== typically mapped as uncached but with write-combining enabled.       ==\n");
+        printf("== Writes to such framebuffers are quite fast, but reads are much       ==\n");
+        printf("== slower and very sensitive to the alignment and the selection of      ==\n");
+        printf("== CPU instructions which are used for accessing memory.                ==\n");
+        printf("==                                                                      ==\n");
+        printf("== Many x86 systems allocate the framebuffer in the GPU memory,         ==\n");
+        printf("== accessible for the CPU via a relatively slow PCI-E bus. Moreover,    ==\n");
+        printf("== PCI-E is asymmetric and handles reads a lot worse than writes.       ==\n");
+        printf("==                                                                      ==\n");
+        printf("== If uncached framebuffer reads are reasonably fast (at least 100 MB/s ==\n");
+        printf("== or preferably >300 MB/s), then using the shadow framebuffer layer    ==\n");
+        printf("== is not necessary in Xorg DDX drivers, resulting in a nice overall    ==\n");
+        printf("== performance improvement. For example, the xf86-video-fbturbo DDX     ==\n");
+        printf("== uses this trick.                                                     ==\n");
+        printf("==========================================================================\n\n");
+
+        srcbuf = fbbuf;
+        if (bufsize > fbsize)
+            bufsize = fbsize;
+        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
+    }
+#endif
+
     free(poolbuf);
 
     printf("\n");

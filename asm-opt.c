@@ -144,6 +144,15 @@ static bench_info x86_sse2[] =
     { NULL, 0, NULL }
 };
 
+static bench_info x86_sse2_fb[] =
+{
+    { "MOVSD copy (from framebuffer)", 0, aligned_block_copy_movsd },
+    { "MOVSD 2-pass copy (from framebuffer)", 1, aligned_block_copy_movsd },
+    { "SSE2 copy (from framebuffer)", 0, aligned_block_copy_sse2 },
+    { "SSE2 2-pass copy (from framebuffer)", 1, aligned_block_copy_sse2 },
+    { NULL, 0, NULL }
+};
+
 static int check_sse2_support(void)
 {
 #ifdef __amd64__
@@ -181,6 +190,14 @@ bench_info *get_asm_benchmarks(void)
 {
     if (check_sse2_support())
         return x86_sse2;
+    else
+        return empty;
+}
+
+bench_info *get_asm_framebuffer_benchmarks(void)
+{
+    if (check_sse2_support())
+        return x86_sse2_fb;
     else
         return empty;
 }
@@ -271,6 +288,48 @@ bench_info *get_asm_benchmarks(void)
         return arm_v4;
 }
 
+static bench_info arm_neon_fb[] =
+{
+    { "NEON read (from framebuffer)", 0, aligned_block_read_neon },
+    { "NEON copy (from framebuffer)", 0, aligned_block_copy_neon },
+    { "NEON 2-pass copy (from framebuffer)", 1, aligned_block_copy_neon },
+    { "NEON unrolled copy (from framebuffer)", 0, aligned_block_copy_unrolled_neon },
+    { "NEON 2-pass unrolled copy (from framebuffer)", 1, aligned_block_copy_unrolled_neon },
+    { "VFP copy (from framebuffer)", 0, aligned_block_copy_vfp },
+    { "VFP 2-pass copy (from framebuffer)", 1, aligned_block_copy_vfp },
+    { "ARM copy (from framebuffer)", 0, aligned_block_copy_incr_armv5te },
+    { "ARM 2-pass copy (from framebuffer)", 1, aligned_block_copy_incr_armv5te },
+    { NULL, 0, NULL }
+};
+
+static bench_info arm_v5te_vfp_fb[] =
+{
+    { "VFP copy (from framebuffer)", 0, aligned_block_copy_vfp },
+    { "VFP 2-pass copy (from framebuffer)", 1, aligned_block_copy_vfp },
+    { "ARM copy (from framebuffer)", 0, aligned_block_copy_incr_armv5te },
+    { "ARM 2-pass copy (from framebuffer)", 1, aligned_block_copy_incr_armv5te },
+    { NULL, 0, NULL }
+};
+
+static bench_info arm_v5te_fb[] =
+{
+    { "ARM copy (from framebuffer)", 0, aligned_block_copy_incr_armv5te },
+    { "ARM 2-pass copy (from framebuffer)", 1, aligned_block_copy_incr_armv5te },
+    { NULL, 0, NULL }
+};
+
+bench_info *get_asm_framebuffer_benchmarks(void)
+{
+    if (check_cpu_feature("neon"))
+        return arm_neon_fb;
+    else if (check_cpu_feature("edsp") && check_cpu_feature("vfp"))
+        return arm_v5te_vfp_fb;
+    else if (check_cpu_feature("edsp"))
+        return arm_v5te_fb;
+    else
+        return empty;
+}
+
 #elif defined(__mips__) && defined(_ABIO32)
 
 #include "mips-32.h"
@@ -307,9 +366,19 @@ bench_info *get_asm_benchmarks(void)
     }
 }
 
+bench_info *get_asm_framebuffer_benchmarks(void)
+{
+    return empty;
+}
+
 #else
 
 bench_info *get_asm_benchmarks(void)
+{
+    return empty;
+}
+
+bench_info *get_asm_framebuffer_benchmarks(void)
 {
     return empty;
 }
