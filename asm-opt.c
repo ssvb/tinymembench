@@ -330,6 +330,43 @@ bench_info *get_asm_framebuffer_benchmarks(void)
         return empty;
 }
 
+#elif defined(__aarch64__)
+
+#include "aarch64-asm.h"
+
+static bench_info aarch64_neon[] =
+{
+    { "NEON LDP/STP copy", 0, aligned_block_copy_ldpstp_q_aarch64 },
+    { "NEON LD1/ST1 copy", 0, aligned_block_copy_ld1st1_aarch64 },
+    { "NEON STP fill", 0, aligned_block_fill_stp_q_aarch64 },
+    { "NEON STNP fill", 0, aligned_block_fill_stnp_q_aarch64 },
+    { "ARM LDP/STP copy", 0, aligned_block_copy_ldpstp_x_aarch64 },
+    { "ARM STP fill", 0, aligned_block_fill_stp_x_aarch64 },
+    { "ARM STNP fill", 0, aligned_block_fill_stnp_x_aarch64 },
+    { NULL, 0, NULL }
+};
+
+static bench_info aarch64_neon_fb[] =
+{
+    { "NEON LDP/STP copy (from framebuffer)", 0, aligned_block_copy_ldpstp_q_aarch64 },
+    { "NEON LDP/STP 2-pass copy (from framebuffer)", 1, aligned_block_copy_ldpstp_q_aarch64 },
+    { "NEON LD1/ST1 copy (from framebuffer)", 0, aligned_block_copy_ld1st1_aarch64 },
+    { "NEON LD1/ST1 2-pass copy (from framebuffer)", 1, aligned_block_copy_ld1st1_aarch64 },
+    { "ARM LDP/STP copy (from framebuffer)", 0, aligned_block_copy_ldpstp_x_aarch64 },
+    { "ARM LDP/STP 2-pass copy (from framebuffer)", 1, aligned_block_copy_ldpstp_x_aarch64 },
+    { NULL, 0, NULL }
+};
+
+bench_info *get_asm_benchmarks(void)
+{
+    return aarch64_neon;
+}
+
+bench_info *get_asm_framebuffer_benchmarks(void)
+{
+    return aarch64_neon_fb;
+}
+
 #elif defined(__mips__) && defined(_ABIO32)
 
 #include "mips-32.h"
