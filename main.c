@@ -41,7 +41,6 @@
 
 #define SIZE             (32 * 1024 * 1024)
 #define BLOCKSIZE        2048
-#define COUNT            16
 #define MAXREPEATS       10
 
 #ifdef BENCH_FRAMEBUFFER
@@ -74,7 +73,7 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
                                      void (*f)(int64_t *, int64_t *, int),
                                      const char *description)
 {
-    int i, j, loopcount, n;
+    int i, j, loopcount, innerloopcount, n;
     double t1, t2;
     double speed, maxspeed;
     double s, s0, s1, s2;
@@ -86,13 +85,14 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
     {
         f(dstbuf, srcbuf, size);
         loopcount = 0;
+        innerloopcount = 1;
         t1 = gettime();
         do
         {
-            loopcount++;
+            loopcount += innerloopcount;
             if (use_tmpbuf)
             {
-                for (i = 0; i < COUNT; i++)
+                for (i = 0; i < innerloopcount; i++)
                 {
                     for (j = 0; j < size; j += blocksize)
                         {
@@ -103,14 +103,15 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
             }
             else
             {
-                for (i = 0; i < COUNT; i++)
+                for (i = 0; i < innerloopcount; i++)
                 {
                     f(dstbuf, srcbuf, size);
                 }
             }
+            innerloopcount *= 2;
             t2 = gettime();
         } while (t2 - t1 < 0.5);
-        speed = (double)size * COUNT * loopcount / (t2 - t1) / 1000000.;
+        speed = (double)size * loopcount / (t2 - t1) / 1000000.;
 
         s0 += 1;
         s1 += speed;
