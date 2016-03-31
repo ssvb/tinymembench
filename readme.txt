@@ -14,9 +14,9 @@ Adding extra optimization options is possible (in linux):
     $ CFLAGS="-O2 -march=atom -mtune=atom" make
 
 Example of crosscompiling for ARM (also in linux):
-    $ CC=arm-none-linux-gnueabi-gcc CFLAGS="-O2 -mcpu=cortex-a9" make
+    $ CC=arm-linux-gnueabihf-gcc CFLAGS="-O2 -mcpu=cortex-a9" make
 
 Example of crosscompiling and running the benchmark on android device:
-    $ CC=arm-none-linux-gnueabi-gcc CFLAGS="-O2 -mcpu=cortex-a8 -static" make
+    $ CC=arm-linux-gnueabihf-gcc CFLAGS="-O2 -mcpu=cortex-a8 -static" make
     $ adb push tinymembench /data/local/tmp/tinymembench
     $ adb shell /data/local/tmp/tinymembench
