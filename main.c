@@ -51,7 +51,8 @@ static void *mmap_framebuffer(size_t *fbsize)
     struct fb_fix_screeninfo finfo;
 
     if ((fd = open("/dev/fb0", O_RDWR)) == -1)
-        return NULL;
+        if ((fd = open("/dev/graphics/fb0", O_RDWR)) == -1)
+            return NULL;
 
     if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo))
         return NULL;
