@@ -337,6 +337,10 @@ bench_info *get_asm_framebuffer_benchmarks(void)
 static bench_info aarch64_neon[] =
 {
     { "NEON LDP/STP copy", 0, aligned_block_copy_ldpstp_q_aarch64 },
+    { "NEON LDP/STP copy pldl2strm (32 bytes step)", 0, aligned_block_copy_ldpstp_q_pf32_l2strm_aarch64 },
+    { "NEON LDP/STP copy pldl2strm (64 bytes step)", 0, aligned_block_copy_ldpstp_q_pf64_l2strm_aarch64 },
+    { "NEON LDP/STP copy pldl1keep (32 bytes step)", 0, aligned_block_copy_ldpstp_q_pf32_l1keep_aarch64 },
+    { "NEON LDP/STP copy pldl1keep (64 bytes step)", 0, aligned_block_copy_ldpstp_q_pf64_l1keep_aarch64 },
     { "NEON LD1/ST1 copy", 0, aligned_block_copy_ld1st1_aarch64 },
     { "NEON STP fill", 0, aligned_block_fill_stp_q_aarch64 },
     { "NEON STNP fill", 0, aligned_block_fill_stnp_q_aarch64 },

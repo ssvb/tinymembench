@@ -27,6 +27,8 @@
     .text
     .align 2
 
+#define PREFETCH_DISTANCE 320
+
 .macro asm_function function_name
     .global \function_name
     .type \function_name,%function 
@@ -56,6 +58,64 @@ asm_function aligned_block_copy_ldpstp_x_aarch64
 
 asm_function aligned_block_copy_ldpstp_q_aarch64
 0:
+    ldp         q0,  q1, [SRC, #(0 * 32)]
+    ldp         q2,  q3, [SRC, #(1 * 32)]
+    add         SRC, SRC, #64
+    stp         q0,  q1, [DST, #(0 * 32)]
+    stp         q2,  q3, [DST, #(1 * 32)]
+    add         DST, DST, #64
+    subs        SIZE, SIZE, #64
+    bgt         0b
+    ret
+.endfunc
+
+asm_function aligned_block_copy_ldpstp_q_pf32_l2strm_aarch64
+0:
+    prfm        pldl2strm, [SRC, #(PREFETCH_DISTANCE +  0)]
+    ldp         q0,  q1, [SRC, #(0 * 32)]
+    prfm        pldl2strm, [SRC, #(PREFETCH_DISTANCE + 32)]
+    ldp         q2,  q3, [SRC, #(1 * 32)]
+    add         SRC, SRC, #64
+    stp         q0,  q1, [DST, #(0 * 32)]
+    stp         q2,  q3, [DST, #(1 * 32)]
+    add         DST, DST, #64
+    subs        SIZE, SIZE, #64
+    bgt         0b
+    ret
+.endfunc
+
+asm_function aligned_block_copy_ldpstp_q_pf64_l2strm_aarch64
+0:
+    prfm        pldl2strm, [SRC, #(PREFETCH_DISTANCE)]
+    ldp         q0,  q1, [SRC, #(0 * 32)]
+    ldp         q2,  q3, [SRC, #(1 * 32)]
+    add         SRC, SRC, #64
+    stp         q0,  q1, [DST, #(0 * 32)]
+    stp         q2,  q3, [DST, #(1 * 32)]
+    add         DST, DST, #64
+    subs        SIZE, SIZE, #64
+    bgt         0b
+    ret
+.endfunc
+
+asm_function aligned_block_copy_ldpstp_q_pf32_l1keep_aarch64
+0:
+    prfm        pldl1keep, [SRC, #(PREFETCH_DISTANCE +  0)]
+    ldp         q0,  q1, [SRC, #(0 * 32)]
+    prfm        pldl1keep, [SRC, #(PREFETCH_DISTANCE + 32)]
+    ldp         q2,  q3, [SRC, #(1 * 32)]
+    add         SRC, SRC, #64
+    stp         q0,  q1, [DST, #(0 * 32)]
+    stp         q2,  q3, [DST, #(1 * 32)]
+    add         DST, DST, #64
+    subs        SIZE, SIZE, #64
+    bgt         0b
+    ret
+.endfunc
+
+asm_function aligned_block_copy_ldpstp_q_pf64_l1keep_aarch64
+0:
+    prfm        pldl1keep, [SRC, #(PREFETCH_DISTANCE)]
     ldp         q0,  q1, [SRC, #(0 * 32)]
     ldp         q2,  q3, [SRC, #(1 * 32)]
     add         SRC, SRC, #64

@@ -40,6 +40,19 @@ void aligned_block_copy_ld1st1_aarch64(int64_t * __restrict dst,
                                        int64_t * __restrict src,
                                        int                  size);
 
+void aligned_block_copy_ldpstp_q_pf32_l2strm_aarch64(int64_t * __restrict dst,
+                                                     int64_t * __restrict src,
+                                                     int                  size);
+void aligned_block_copy_ldpstp_q_pf64_l2strm_aarch64(int64_t * __restrict dst,
+                                                     int64_t * __restrict src,
+                                                     int                  size);
+void aligned_block_copy_ldpstp_q_pf32_l1keep_aarch64(int64_t * __restrict dst,
+                                                     int64_t * __restrict src,
+                                                     int                  size);
+void aligned_block_copy_ldpstp_q_pf64_l1keep_aarch64(int64_t * __restrict dst,
+                                                     int64_t * __restrict src,
+                                                     int                  size);
+
 void aligned_block_fill_stp_x_aarch64(int64_t * __restrict dst,
                                       int64_t * __restrict src,
                                       int                  size);
