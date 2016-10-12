@@ -278,7 +278,7 @@ static bench_info arm_v4[] =
 
 bench_info *get_asm_benchmarks(void)
 {
-    if (check_cpu_feature("neon"))
+    if (check_cpu_feature("neon") || check_cpu_feature("asimd"))
         return arm_neon;
     else if (check_cpu_feature("edsp") && check_cpu_feature("vfp"))
         return arm_v5te_vfp;
@@ -320,7 +320,7 @@ static bench_info arm_v5te_fb[] =
 
 bench_info *get_asm_framebuffer_benchmarks(void)
 {
-    if (check_cpu_feature("neon"))
+    if (check_cpu_feature("neon") || check_cpu_feature("asimd"))
         return arm_neon_fb;
     else if (check_cpu_feature("edsp") && check_cpu_feature("vfp"))
         return arm_v5te_vfp_fb;
