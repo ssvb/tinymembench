@@ -21,7 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef __arm__
+#if defined(__arm__) && defined(__ARM_ARCH_ISA_ARM)
 
 .text
 .fpu neon

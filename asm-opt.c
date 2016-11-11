@@ -202,7 +202,7 @@ bench_info *get_asm_framebuffer_benchmarks(void)
         return empty;
 }
 
-#elif defined(__arm__)
+#elif defined(__arm__) && defined(__ARM_ARCH_ISA_ARM)
 
 #include "arm-neon.h"
 
