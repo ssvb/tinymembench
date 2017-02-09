@@ -1,7 +1,8 @@
+dist: trusty
 language: c
 
 #install:
-# - sudo apt-get -y install gcc-arm-linux-gnueabihf 
+# - sudo apt-get -y install gcc-arm-linux-gnueabihf
 
 matrix:
   include:
@@ -16,7 +17,7 @@ matrix:
             - gcc-arm-linux-gnueabihf
 
     - os: linux
-      compiler: i686-w64-mingw32-gcc
+      compiler: i586-mingw32msvc-gcc
       addons:
         apt:
           packages:
@@ -34,4 +35,6 @@ matrix:
             - gcc-mingw-w64-i686
             - gcc-mingw-w64
 
-script: make
+script:
+  - $(CC) -dM -E - < /dev/null
+  - make
