@@ -36,5 +36,5 @@ matrix:
             - gcc-mingw-w64
 
 script:
-  - $(CC) -dM -E - < /dev/null
+  - x86_64-w64-mingw32-gcc -dM -E - < /dev/null
   - make
