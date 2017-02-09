@@ -1,12 +1,27 @@
 language: c
 
-install:
- - sudo apt-get -y install gcc-arm-linux-gnueabihf mingw32 mingw32-binutils mingw32-runtime
+#install:
+# - sudo apt-get -y install gcc-arm-linux-gnueabihf 
 
-compiler: gcc
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
 
-env:
- - CC=arm-linux-gnueabihf-gcc
- - CC=mingw32-gcc
+    - os: linux
+      compiler: arm-linux-gnueabihf-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-arm-linux-gnueabihf
+
+    - os: linux
+      compiler: mingw32-gcc
+      addons:
+        apt:
+          packages:
+            - mingw32
+            - mingw32-binutils
+            - mingw32-runtime
 
 script: make
