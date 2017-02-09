@@ -20,7 +20,7 @@ matrix:
         apt:
           packages:
             - gcc-aarch64-linux-gnu
-            - linux-libc-dev-arm64-cross
+            - libc6-dev-arm64-cross
 
     - os: linux
       compiler: i586-mingw32msvc-gcc
