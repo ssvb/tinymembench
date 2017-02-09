@@ -11,6 +11,7 @@ matrix:
         apt:
           packages:
             - gcc-arm-linux-gnueabihf
+            - linux-libc-dev-armhf-cross
 
     - os: linux
       dist: trusty
@@ -19,6 +20,7 @@ matrix:
         apt:
           packages:
             - gcc-aarch64-linux-gnu
+            - linux-libc-dev-arm64-cross
 
     - os: linux
       compiler: i586-mingw32msvc-gcc
@@ -41,3 +43,4 @@ matrix:
 
 script:
   - make
+  - x86_64-w64-mingw32-objdump -d x86-sse2.o
