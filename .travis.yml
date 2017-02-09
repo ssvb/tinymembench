@@ -1,8 +1,5 @@
 language: c
 
-#install:
-# - sudo apt-get -y install gcc-arm-linux-gnueabihf
-
 matrix:
   include:
     - os: linux
@@ -35,5 +32,4 @@ matrix:
             - gcc-mingw-w64
 
 script:
-  - x86_64-w64-mingw32-gcc -dM -E - < /dev/null
   - make
