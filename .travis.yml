@@ -1,7 +1,12 @@
 language: c
 
-compiler:
-  - clang
-  - gcc
+install:
+ - sudo apt-get -y install gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu
+
+compiler: gcc
+
+env:
+ - CC=arm-linux-gnueabihf-gcc
+ - CC=aarch64-linux-gnu-gcc
 
 script: make
