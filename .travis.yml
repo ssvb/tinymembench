@@ -10,6 +10,7 @@ matrix:
       addons:
         apt:
           packages:
+            - gcc-multilib
             - gcc-arm-linux-gnueabihf
             - linux-libc-dev-armhf-cross
             - gcc-4.6-multilib-arm-linux-gnueabihf
