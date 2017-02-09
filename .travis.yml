@@ -13,6 +13,14 @@ matrix:
             - gcc-arm-linux-gnueabihf
 
     - os: linux
+      dist: trusty
+      compiler: aarch64-linux-gnu-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-aarch64-linux-gnu
+
+    - os: linux
       compiler: i586-mingw32msvc-gcc
       addons:
         apt:
