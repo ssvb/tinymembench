@@ -1,0 +1,34 @@
+language: c
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+
+    - os: linux
+      compiler: arm-linux-gnueabihf-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-arm-linux-gnueabihf
+            - libc6-dev-armhf-cross
+
+    - os: linux
+      dist: trusty
+      compiler: aarch64-linux-gnu-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-aarch64-linux-gnu
+            - libc6-dev-arm64-cross
+
+    - os: linux
+      compiler: i586-mingw32msvc-gcc
+      addons:
+        apt:
+          packages:
+            - mingw32
+            - mingw32-binutils
+            - mingw32-runtime
+
+script: make
