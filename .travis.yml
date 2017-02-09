@@ -16,12 +16,22 @@ matrix:
             - gcc-arm-linux-gnueabihf
 
     - os: linux
-      compiler: mingw32-gcc
+      compiler: i686-w64-mingw32-gcc
       addons:
         apt:
           packages:
             - mingw32
             - mingw32-binutils
             - mingw32-runtime
+
+    - os: linux
+      compiler: x86_64-w64-mingw32-gcc
+      addons:
+        apt:
+          packages:
+            - gcc-mingw-w64-base
+            - binutils-mingw-w64-i686
+            - gcc-mingw-w64-i686
+            - gcc-mingw-w64
 
 script: make
