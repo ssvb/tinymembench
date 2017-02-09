@@ -41,5 +41,4 @@ matrix:
             - gcc-mingw-w64-i686
             - gcc-mingw-w64
 
-script:
-  - make
+script: make
