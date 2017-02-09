@@ -12,6 +12,7 @@ matrix:
           packages:
             - gcc-arm-linux-gnueabihf
             - linux-libc-dev-armhf-cross
+            - gcc-4.6-multilib-arm-linux-gnueabihf
 
     - os: linux
       dist: trusty
@@ -43,4 +44,3 @@ matrix:
 
 script:
   - make
-  - x86_64-w64-mingw32-objdump -d x86-sse2.o

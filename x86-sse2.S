@@ -47,7 +47,7 @@
 .endm
 
 .macro asm_function function_name
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || !defined(_WIN64)
     asm_function_helper _\function_name
 #else
     asm_function_helper \function_name
