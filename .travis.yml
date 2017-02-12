@@ -6,8 +6,10 @@ matrix:
       compiler: gcc
       addons:
         apt:
+          sources:
+            - llvm-toolchain-precise-3.8
           packages:
-            - clang-format
+            - clang-format-3.8
 
     - os: linux
       compiler: arm-linux-gnueabihf-gcc
