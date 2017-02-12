@@ -4,6 +4,10 @@ matrix:
   include:
     - os: linux
       compiler: gcc
+      addons:
+        apt:
+          packages:
+            - clang-format
 
     - os: linux
       compiler: arm-linux-gnueabihf-gcc
