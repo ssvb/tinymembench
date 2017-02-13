@@ -20,6 +20,10 @@ matrix:
           packages:
             - gcc-arm-linux-gnueabihf
             - libc6-dev-armhf-cross
+            - qemu-user
+      script:
+        - make
+        - qemu-arm ./tinymembench
 
     - os: linux
       dist: trusty
@@ -29,6 +33,7 @@ matrix:
           packages:
             - gcc-aarch64-linux-gnu
             - libc6-dev-arm64-cross
+            - qemu-user
 
     - os: linux
       compiler: i586-mingw32msvc-gcc
@@ -38,6 +43,7 @@ matrix:
             - mingw32
             - mingw32-binutils
             - mingw32-runtime
+            - wine
 
     - os: linux
       compiler: x86_64-w64-mingw32-gcc
