@@ -162,6 +162,7 @@ static int check_sse2_support(void)
     __asm__ volatile (
         /* According to Intel manual, CPUID instruction is supported
          * if the value of ID bit (bit 21) in EFLAGS can be modified */
+        "xorl     %%edx, %%edx\n"
         "pushf\n"
         "movl     (%%esp),   %0\n"
         "xorl     $0x200000, (%%esp)\n" /* try to modify ID bit */
