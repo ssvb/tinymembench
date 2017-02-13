@@ -130,17 +130,17 @@ static bench_info x86_sse2[] =
     { "MOVSB copy", 0, aligned_block_copy_movsb },
     { "MOVSD copy", 0, aligned_block_copy_movsd },
     { "SSE2 copy", 0, aligned_block_copy_sse2 },
-    { "SSE2 nontemporal copy", 0, aligned_block_copy_nt_sse2 },
+//    { "SSE2 nontemporal copy", 0, aligned_block_copy_nt_sse2 },
     { "SSE2 copy prefetched (32 bytes step)", 0, aligned_block_copy_pf32_sse2 },
     { "SSE2 copy prefetched (64 bytes step)", 0, aligned_block_copy_pf64_sse2 },
-    { "SSE2 nontemporal copy prefetched (32 bytes step)", 0, aligned_block_copy_nt_pf32_sse2 },
-    { "SSE2 nontemporal copy prefetched (64 bytes step)", 0, aligned_block_copy_nt_pf64_sse2 },
+//    { "SSE2 nontemporal copy prefetched (32 bytes step)", 0, aligned_block_copy_nt_pf32_sse2 },
+//    { "SSE2 nontemporal copy prefetched (64 bytes step)", 0, aligned_block_copy_nt_pf64_sse2 },
     { "SSE2 2-pass copy", 1, aligned_block_copy_sse2 },
     { "SSE2 2-pass copy prefetched (32 bytes step)", 1, aligned_block_copy_pf32_sse2 },
     { "SSE2 2-pass copy prefetched (64 bytes step)", 1, aligned_block_copy_pf64_sse2 },
-    { "SSE2 2-pass nontemporal copy", 1, aligned_block_copy_nt_sse2 },
+//    { "SSE2 2-pass nontemporal copy", 1, aligned_block_copy_nt_sse2 },
     { "SSE2 fill", 0, aligned_block_fill_sse2 },
-    { "SSE2 nontemporal fill", 0, aligned_block_fill_nt_sse2 },
+//    { "SSE2 nontemporal fill", 0, aligned_block_fill_nt_sse2 },
     { NULL, 0, NULL }
 };
 
