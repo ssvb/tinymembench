@@ -22,7 +22,7 @@ matrix:
             - libc6-dev-armhf-cross
             - qemu-user
       script:
-        - make
+        - CFLAGS="-O2 -static" make
         - qemu-arm ./tinymembench
 
     - os: linux
@@ -34,6 +34,9 @@ matrix:
             - gcc-aarch64-linux-gnu
             - libc6-dev-arm64-cross
             - qemu-user
+      script:
+        - CFLAGS="-O2 -static" make
+        - qemu-aarch64 ./tinymembench
 
     - os: linux
       compiler: i586-mingw32msvc-gcc
@@ -44,6 +47,9 @@ matrix:
             - mingw32-binutils
             - mingw32-runtime
             - wine
+      script:
+        - CFLAGS="-O2 -static" make
+        - wine ./tinymembench.exe
 
     - os: linux
       compiler: x86_64-w64-mingw32-gcc
