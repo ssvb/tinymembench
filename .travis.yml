@@ -50,7 +50,7 @@ matrix:
             - mingw32-runtime
             - wine
       script:
-        - CFLAGS="-O2 -static" make
+        - CFLAGS="-O2" make
         - wine ./tinymembench
 
     - os: linux
@@ -64,5 +64,5 @@ matrix:
             - gcc-mingw-w64
             - wine
       script:
-        - CFLAGS="-O2 -static" make
+        - CFLAGS="-O2" make
         - wine ./tinymembench
