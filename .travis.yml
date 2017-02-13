@@ -41,6 +41,7 @@ matrix:
         - qemu-aarch64 ./tinymembench
 
     - os: linux
+      dist: trusty
       compiler: i586-mingw32msvc-gcc
       addons:
         apt:
@@ -55,6 +56,7 @@ matrix:
         - wine ./tinymembench
 
     - os: linux
+      dist: trusty
       compiler: x86_64-w64-mingw32-gcc
       addons:
         apt:
