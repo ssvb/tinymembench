@@ -42,7 +42,12 @@
 
 #define SIZE             (32 * 1024 * 1024)
 #define BLOCKSIZE        2048
-#define MAXREPEATS       10
+#ifndef MAXREPEATS
+# define MAXREPEATS      10
+#endif
+#ifndef LATBENCH_COUNT
+# define LATBENCH_COUNT  10000000
+#endif
 
 #ifdef __linux__
 static void *mmap_framebuffer(size_t *fbsize)
@@ -473,7 +478,7 @@ int latency_bench(int size, int count, int use_hugepage)
 
 int main(void)
 {
-    int latbench_size = SIZE * 2, latbench_count = 10000000;
+    int latbench_size = SIZE * 2, latbench_count = LATBENCH_COUNT;
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
     size_t bufsize = SIZE;
