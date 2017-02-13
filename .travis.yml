@@ -24,7 +24,7 @@ matrix:
             - libc6-dev-armhf-cross
             - qemu-user
       script:
-        - CFLAGS="-O2 -g -static -DMAXREPEATS=1 -DLATBENCH_COUNT=1000" make
+        - CFLAGS="-O2 -g -static -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
         - qemu-arm ./tinymembench
 
     - os: linux
@@ -37,7 +37,7 @@ matrix:
             - libc6-dev-arm64-cross
             - qemu-user
       script:
-        - CFLAGS="-O2 -g -static -DMAXREPEATS=1 -DLATBENCH_COUNT=1000" make
+        - CFLAGS="-O2 -g -static -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
         - qemu-aarch64 ./tinymembench
 
     - os: linux
@@ -49,11 +49,11 @@ matrix:
             - mingw32
             - mingw32-binutils
             - mingw32-runtime
-            - wine
+#            - wine
       script:
-        - CFLAGS="-O2 -g -DMAXREPEATS=1 -DLATBENCH_COUNT=1000" make
+        - CFLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
         - i586-mingw32msvc-objdump -d ./tinymembench
-        - wine ./tinymembench
+#        - wine ./tinymembench
 
     - os: linux
       compiler: x86_64-w64-mingw32-gcc
@@ -66,8 +66,5 @@ matrix:
             - gcc-mingw-w64
             - wine
       script:
-        - CFLAGS="-O2 -g -DMAXREPEATS=1 -DLATBENCH_COUNT=1000" make
-        - wine ./tinymembench
-        - make clean
-        - CFLAGS="-O2 -m32 -g -DMAXREPEATS=1 -DLATBENCH_COUNT=1000" make
+        - CFLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
         - wine ./tinymembench
