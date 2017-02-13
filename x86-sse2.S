@@ -33,9 +33,15 @@
 .func \function_name
 \function_name:
 #ifdef __amd64__
+  #ifdef _WIN64
+    .set DST,  rcx
+    .set SRC,  rdx
+    .set SIZE, r8
+  #else
     .set DST,  rdi
     .set SRC,  rsi
     .set SIZE, rdx
+  #endif
 #else
     mov  eax,  [esp + 4]
     mov  ecx,  [esp + 8]
