@@ -49,7 +49,7 @@ matrix:
             - wine
       script:
         - CFLAGS="-O2 -static" make
-        - wine ./tinymembench.exe
+        - wine ./tinymembench
 
     - os: linux
       compiler: x86_64-w64-mingw32-gcc
@@ -60,5 +60,8 @@ matrix:
             - binutils-mingw-w64-i686
             - gcc-mingw-w64-i686
             - gcc-mingw-w64
+      script:
+        - CFLAGS="-O2 -static" make
+        - wine ./tinymembench
 
 script: make
