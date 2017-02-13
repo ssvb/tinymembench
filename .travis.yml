@@ -12,6 +12,8 @@ matrix:
           packages:
             - g++-4.9
             - clang-format-3.8
+      script:
+        - make
 
     - os: linux
       compiler: arm-linux-gnueabihf-gcc
@@ -60,8 +62,7 @@ matrix:
             - binutils-mingw-w64-i686
             - gcc-mingw-w64-i686
             - gcc-mingw-w64
+            - wine
       script:
         - CFLAGS="-O2 -static" make
         - wine ./tinymembench
-
-script: make
