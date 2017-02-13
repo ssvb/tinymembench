@@ -183,6 +183,7 @@ static int check_sse2_support(void)
         : "=d" (cpuid_feature_information)
         :
         : "cc");
+    printf("cpuid_feature_information = %08X\n", cpuid_feature_information);
     return cpuid_feature_information & (1 << 26);
 #endif
 }
