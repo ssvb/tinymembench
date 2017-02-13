@@ -56,7 +56,6 @@ matrix:
         - wine ./tinymembench
 
     - os: linux
-      dist: trusty
       compiler: x86_64-w64-mingw32-gcc
       addons:
         apt:
@@ -68,4 +67,7 @@ matrix:
             - wine
       script:
         - CFLAGS="-O2 -g -DMAXREPEATS=1 -DLATBENCH_COUNT=1000" make
+        - wine ./tinymembench
+        - make clean
+        - CFLAGS="-O2 -m32 -g -DMAXREPEATS=1 -DLATBENCH_COUNT=1000" make
         - wine ./tinymembench
