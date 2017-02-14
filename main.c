@@ -483,7 +483,7 @@ int main(void)
     void *poolbuf;
     size_t bufsize = SIZE;
 #ifdef __linux__
-    size_t fbsize;
+    size_t fbsize = 0;
     int64_t *fbbuf = mmap_framebuffer(&fbsize);
     fbsize = (fbsize / BLOCKSIZE) * BLOCKSIZE;
 #endif
