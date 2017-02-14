@@ -59,3 +59,22 @@ matrix:
       script:
         - CFLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
         - wine ./tinymembench
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "XL7t4S2GbYhM5+0pkCIUa5y1HntusmHfdLMCbW+Az9pST3Jt3fOrq8rtGXad2XNx8n3Gvq/7HA50ddc2mZ+zXPwMYFXbhRcTgI5F+M96+0BVpogRTno/Z6xsY7KEy9244y9Drx1sXx0rOiu2TRSIUY1juspphJ0ZIu3XYKjvMiM0qVonZ0uvIZUI2N6UkPI20DAh62VdxFzMBxF5JZYLxP6NmfhSuPzshtV9bQdyTcF5zvcH2ZSU679npHgjo58fv5y2XvDgR9U0H9h0py5vXlGhfTN8WxU1jOP+I+KxOOU8r4mKxiHdHh15U2g2W5ryYjGyis0+OEpw1iVxkQQoBv4OOiNqKQ3JyZMUap8UbY3mmx58y1mShQ2QGJj+vLzKW7beQLALHzgg3B6SqcLBfV9XFKETaBQkplOC6+rUkIDNs1tMQh3kyJeO2xg46OawrJLsRWQxAm6Xb/RFfvApg+gIhKES2ePNNZvPl0pqa1ViLq/dD2aanjDWBqocuDa/LY8tNfSnAtgQ8D+4u3rnoFyEEKfNXf1YtnTLl0FsNZY9MpLPVVpzNPCTenQ68Z2SD12yPX9irMhPsFNV9MkyFZypK9myIHtvz9If8rNA+wKdEc086gC4Kr/hR9nM6wlHIgZ4sHaDmpmnnZYwW5YAkgX4B6yT+9mciZn6MDJ8LC4="
+
+before_install:
+      - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+addons:
+  coverity_scan:
+    project:
+      name: "ssvb/tinymembench"
+      description: "Build submitted via Travis CI"
+    notification_email: siarhei.siamashka@gmail.com
+    build_command_prepend: "make clean"
+    build_command:   "make"
+    branch_pattern: coverity_scan
