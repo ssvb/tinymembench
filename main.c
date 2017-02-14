@@ -60,10 +60,14 @@ static void *mmap_framebuffer(size_t *fbsize)
         if ((fd = open("/dev/graphics/fb0", O_RDWR)) == -1)
             return NULL;
 
-    if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo))
+    if (ioctl(fd, FBIOGET_FSCREENINFO, &finfo)) {
+        close(fd);
         return NULL;
+    }
 
     p = mmap(0, finfo.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    close(fd);
+
     if (p == (void *)-1)
         return NULL;
 
