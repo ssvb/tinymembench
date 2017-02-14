@@ -90,7 +90,7 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
     double s, s0, s1, s2;
 
     /* do up to MAXREPEATS measurements */
-    s0 = s1 = s2 = 0;
+    s = s0 = s1 = s2 = 0;
     maxspeed   = 0;
     for (n = 0; n < MAXREPEATS; n++)
     {
@@ -139,7 +139,7 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
         }
     }
 
-    if (s / maxspeed * 100. >= 0.1)
+    if (maxspeed > 0 && s / maxspeed * 100. >= 0.1)
     {
         printf("%s%-52s : %8.1f MB/s (%.1f%%)\n", indent_prefix, description,
                                                maxspeed, s / maxspeed * 100.);
