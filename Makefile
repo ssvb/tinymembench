@@ -1,31 +1,37 @@
-all: tinymembench
+.PHONY : all clean
+
+NAME = tinymembench
 
 ifdef WINDIR
 	CC = gcc
 endif
 
-tinymembench: main.c util.o util.h asm-opt.h version.h asm-opt.o x86-sse2.o arm-neon.o mips-32.o aarch64-asm.o
-	${CC} -O2 ${CFLAGS} -o tinymembench main.c util.o asm-opt.o x86-sse2.o arm-neon.o mips-32.o aarch64-asm.o -lm
+override CFLAGS += -O2
 
-util.o: util.c util.h
-	${CC} -O2 ${CFLAGS} -c util.c
+ASM = aarch64-asm arm-neon mips-32 x86-sse2
+SRC = asm-opt util
 
-asm-opt.o: asm-opt.c asm-opt.h x86-sse2.h arm-neon.h mips-32.h
-	${CC} -O2 ${CFLAGS} -c asm-opt.c
+ASM.h = $(addsuffix .h, ${ASM})
+ASM.o = $(addsuffix .o, ${ASM})
+SRC.h = $(addsuffix .h, ${SRC})
+SRC.o = $(addsuffix .o, ${SRC})
 
-x86-sse2.o: x86-sse2.S
-	${CC} -O2 ${CFLAGS} -c x86-sse2.S
 
-arm-neon.o: arm-neon.S
-	${CC} -O2 ${CFLAGS} -c arm-neon.S
+all : ${NAME}
 
-aarch64-asm.o: aarch64-asm.S
-	${CC} -O2 ${CFLAGS} -c aarch64-asm.S
+${NAME} : main.c version.h ${SRC.h} ${ASM.h} ${SRC.o} ${ASM.o}
+	${CC} ${CFLAGS} $< ${SRC.o} ${ASM.o} -o $@ -lm
 
-mips-32.o: mips-32.S
-	${CC} -O2 ${CFLAGS} -c mips-32.S
+asm-opt.o : %.o : %.c %.h ${ASM.h}
+	${CC} ${CFLAGS} -c $<
+
+util.o : %.o : %.c %.h
+	${CC} ${CFLAGS} -c $<
+
+%.o : %.S
+	${CC} ${CFLAGS} -c $<
 
 clean:
-	-rm -f tinymembench
-	-rm -f tinymembench.exe
-	-rm -f *.o
+	-rm -f ${NAME}
+	-rm -f ${NAME}.exe
+	-rm -f ${ASM.o} ${SRC.o}
