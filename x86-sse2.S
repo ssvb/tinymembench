@@ -30,7 +30,6 @@
 
 .macro asm_function_helper function_name
     .global \function_name
-.func \function_name
 \function_name:
 #ifdef __amd64__
   #ifdef _WIN64
@@ -90,7 +89,7 @@ asm_function aligned_block_copy_movsb
     pop3        edi esi ecx
 #endif
     ret
-.endfunc
+
 
 asm_function aligned_block_copy_movsd
 0:
@@ -110,7 +109,7 @@ asm_function aligned_block_copy_movsd
     pop3        edi esi ecx
 #endif
     ret
-.endfunc
+
 
 asm_function aligned_block_copy_sse2
 0:
@@ -127,7 +126,7 @@ asm_function aligned_block_copy_sse2
     sub         SIZE, 64
     jg          0b
     ret
-.endfunc
+
 
 asm_function aligned_block_copy_nt_sse2
 0:
@@ -144,7 +143,7 @@ asm_function aligned_block_copy_nt_sse2
     sub         SIZE, 64
     jg          0b
     ret
-.endfunc
+
 
 asm_function aligned_block_copy_pf32_sse2
 0:
@@ -163,7 +162,7 @@ asm_function aligned_block_copy_pf32_sse2
     sub         SIZE,       64
     jg          0b
     ret
-.endfunc
+
 
 asm_function aligned_block_copy_nt_pf32_sse2
 0:
@@ -182,7 +181,7 @@ asm_function aligned_block_copy_nt_pf32_sse2
     sub         SIZE,       64
     jg          0b
     ret
-.endfunc
+
 
 asm_function aligned_block_copy_pf64_sse2
 0:
@@ -200,7 +199,7 @@ asm_function aligned_block_copy_pf64_sse2
     sub         SIZE,       64
     jg          0b
     ret
-.endfunc
+
 
 asm_function aligned_block_copy_nt_pf64_sse2
 0:
@@ -218,7 +217,7 @@ asm_function aligned_block_copy_nt_pf64_sse2
     sub         SIZE,       64
     jg          0b
     ret
-.endfunc
+
 
 asm_function aligned_block_fill_sse2
     movdqa      xmm0,       [SRC + 0]
@@ -231,7 +230,7 @@ asm_function aligned_block_fill_sse2
     sub         SIZE,       64
     jg          0b
     ret
-.endfunc
+
 
 asm_function aligned_block_fill_nt_sse2
     movdqa      xmm0,       [SRC + 0]
@@ -244,7 +243,7 @@ asm_function aligned_block_fill_nt_sse2
     sub         SIZE,       64
     jg          0b
     ret
-.endfunc
+
 
 /*****************************************************************************/
 
