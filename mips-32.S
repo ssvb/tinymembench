@@ -32,7 +32,6 @@
 .macro asm_function function_name
     .global \function_name
     .type \function_name, @function
-    .func \function_name
 \function_name:
 .endm
 
@@ -93,7 +92,7 @@ asm_function aligned_block_fill_pf32_mips32
 2:
     jr          $ra
     nop
-.endfunc
+
 
 /*
  * void aligned_block_copy_pf32_mips32(int64_t *dst, int64_t *src, int size)
@@ -178,6 +177,6 @@ asm_function aligned_block_copy_pf32_mips32
     lw          $s7,    28($sp)
     jr          $ra
     addi        $sp,    $sp,    32
-.endfunc
+
 
 #endif
