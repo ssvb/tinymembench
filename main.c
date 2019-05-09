@@ -502,6 +502,7 @@ int main(void)
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory bandwidth tests                                               ==\n");
+	printf("== size Bytes: %d                                               ==\n", bufsize);
     printf("==                                                                      ==\n");
     printf("== Note 1: 1MB = 1000000 bytes                                          ==\n");
     printf("== Note 2: Results for 'copy' tests show how many bytes can be          ==\n");
@@ -560,6 +561,8 @@ int main(void)
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory latency test                                                  ==\n");
+	printf("== latbench_size Bytes: %d                                     ==\n", latbench_size);
+	printf("== latbench_count: %d                                           ==\n", latbench_count);
     printf("==                                                                      ==\n");
     printf("== Average time is measured for random memory accesses in the buffers   ==\n");
     printf("== of different sizes. The larger is the buffer, the more significant   ==\n");
