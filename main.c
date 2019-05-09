@@ -482,6 +482,18 @@ int latency_bench(int size, int count, int use_hugepage)
     return 1;
 }
 
+static void
+usage()
+{
+	fprintf(stderr, "usage: %s [-s buffer size -b blocksize -l latency max size -c latency count]\n",
+	    progname);
+	fprintf(stderr, "\t-b Memory blocksize in Bytes <%d>\n", BLOCKSIZE);
+	fprintf(stderr, "\t-s Memory buffer size in Bytes <%d>\n", SIZE);
+	fprintf(stderr, "\t-l Latency test maximum buffer size in Bytes <%d>\n", SIZE * 2);
+	fprintf(stderr, "\t-c Latency count <%d>\n", LATBENCH_COUNT);
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc, char *argv[])
 {
 	int ch;
@@ -490,7 +502,7 @@ int main(int argc, char *argv[])
 	int blocksize = BLOCKSIZE;
 	
 	progname = argv[0];
-	while ((ch = getopt(argc, argv, "b:c:l:s:")) != -1) {
+	while ((ch = getopt(argc, argv, "hb:c:l:s:")) != -1) {
 		switch (ch) {
 		case 'b':
 		    blocksize = atoi(optarg);
@@ -504,6 +516,8 @@ int main(int argc, char *argv[])
 		case 's':
 		    bufsize = atoi(optarg);
 			break;
+		case 'h':
+		    usage();
 		}
 	}
 
