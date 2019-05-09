@@ -49,6 +49,8 @@
 # define LATBENCH_COUNT  10000000
 #endif
 
+char *progname;
+
 #ifdef __linux__
 static void *mmap_framebuffer(size_t *fbsize)
 {
@@ -480,12 +482,29 @@ int latency_bench(int size, int count, int use_hugepage)
     return 1;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    int latbench_size = SIZE * 2, latbench_count = LATBENCH_COUNT;
+	int ch;
+	int latbench_size = SIZE * 2, latbench_count = LATBENCH_COUNT;
+	size_t bufsize = SIZE;
+	
+	progname = argv[0];
+	while ((ch = getopt(argc, argv, "c:l:s:")) != -1) {
+		switch (ch) {
+		case 'c':
+		    latbench_count = atoi(optarg);
+			break;
+		case 'l':
+		    latbench_size = atoi(optarg);
+			break;
+		case 's':
+		    bufsize = atoi(optarg);
+			break;
+		}
+	}
+
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
-    size_t bufsize = SIZE;
 #ifdef __linux__
     size_t fbsize = 0;
     int64_t *fbbuf = mmap_framebuffer(&fbsize);
