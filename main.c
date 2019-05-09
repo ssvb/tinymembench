@@ -585,8 +585,8 @@ int main(int argc, char *argv[])
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory latency test                                                  ==\n");
-	printf("== latbench_size Bytes: %d                                     ==\n", latbench_size);
-	printf("== latbench_count: %d                                           ==\n", latbench_count);
+	printf("== latbench_size Bytes: %d                                       ==\n", latbench_size);
+	printf("== latbench_count: %d                                             ==\n", latbench_count);
     printf("==                                                                      ==\n");
     printf("== Average time is measured for random memory accesses in the buffers   ==\n");
     printf("== of different sizes. The larger is the buffer, the more significant   ==\n");
