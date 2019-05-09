@@ -487,10 +487,14 @@ int main(int argc, char *argv[])
 	int ch;
 	int latbench_size = SIZE * 2, latbench_count = LATBENCH_COUNT;
 	size_t bufsize = SIZE;
+	int blocksize = BLOCKSIZE;
 	
 	progname = argv[0];
-	while ((ch = getopt(argc, argv, "c:l:s:")) != -1) {
+	while ((ch = getopt(argc, argv, "b:c:l:s:")) != -1) {
 		switch (ch) {
+		case 'b':
+		    blocksize = atoi(optarg);
+			break;
 		case 'c':
 		    latbench_count = atoi(optarg);
 			break;
@@ -508,7 +512,7 @@ int main(int argc, char *argv[])
 #ifdef __linux__
     size_t fbsize = 0;
     int64_t *fbbuf = mmap_framebuffer(&fbsize);
-    fbsize = (fbsize / BLOCKSIZE) * BLOCKSIZE;
+    fbsize = (fbsize / blocksize) * blocksize;
 #endif
 
     printf("tinymembench v" VERSION " (simple benchmark for memory throughput and latency)\n");
@@ -516,12 +520,13 @@ int main(int argc, char *argv[])
 
     poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, bufsize,
                                             (void **)&dstbuf, bufsize,
-                                            (void **)&tmpbuf, BLOCKSIZE,
+                                            (void **)&tmpbuf, blocksize,
                                             NULL, 0);
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory bandwidth tests                                               ==\n");
-	printf("== size Bytes: %d                                               ==\n", bufsize);
+	printf("== size Bytes: %d                                                ==\n", bufsize);
+	printf("== blocksize Bytes: %d                                                ==\n", blocksize);
     printf("==                                                                      ==\n");
     printf("== Note 1: 1MB = 1000000 bytes                                          ==\n");
     printf("== Note 2: Results for 'copy' tests show how many bytes can be          ==\n");
@@ -534,13 +539,13 @@ int main(int argc, char *argv[])
     printf("==         brackets                                                     ==\n");
     printf("==========================================================================\n\n");
 
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_benchmarks);
+    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, blocksize, " ", c_benchmarks);
     printf(" ---\n");
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", libc_benchmarks);
+    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, blocksize, " ", libc_benchmarks);
     bench_info *bi = get_asm_benchmarks();
     if (bi->f) {
         printf(" ---\n");
-        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
+        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, blocksize, " ", bi);
     }
 
 #ifdef __linux__
@@ -571,7 +576,7 @@ int main(int argc, char *argv[])
         srcbuf = fbbuf;
         if (bufsize > fbsize)
             bufsize = fbsize;
-        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
+        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, blocksize, " ", bi);
     }
 #endif
 
