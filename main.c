@@ -28,8 +28,10 @@
 #include <math.h>
 #include <sys/time.h>
 
-#ifdef __linux__
+#if !defined(_WIN64) && !defined(_WIN32)
 #include <unistd.h>
+#endif
+#ifdef __linux__
 #include <fcntl.h>
 #include <linux/fb.h>
 #include <sys/mman.h>
