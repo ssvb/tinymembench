@@ -541,7 +541,7 @@ int main(int argc, char *argv[])
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory bandwidth tests                                               ==\n");
-	printf("== size Bytes: %d                                                ==\n", bufsize);
+	printf("== size Bytes: %zu                                                ==\n", bufsize);
 	printf("== blocksize Bytes: %d                                                ==\n", blocksize);
     printf("==                                                                      ==\n");
     printf("== Note 1: 1MB = 1000000 bytes                                          ==\n");
