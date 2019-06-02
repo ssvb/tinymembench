@@ -28,8 +28,10 @@
 #include <math.h>
 #include <sys/time.h>
 
-#ifdef __linux__
+#if !defined(_WIN64) && !defined(_WIN32)
 #include <unistd.h>
+#endif
+#ifdef __linux__
 #include <fcntl.h>
 #include <linux/fb.h>
 #include <sys/mman.h>
@@ -48,6 +50,8 @@
 #ifndef LATBENCH_COUNT
 # define LATBENCH_COUNT  10000000
 #endif
+
+char *progname;
 
 #ifdef __linux__
 static void *mmap_framebuffer(size_t *fbsize)
@@ -480,16 +484,51 @@ int latency_bench(int size, int count, int use_hugepage)
     return 1;
 }
 
-int main(void)
+static void
+usage()
 {
-    int latbench_size = SIZE * 2, latbench_count = LATBENCH_COUNT;
+	fprintf(stderr, "usage: %s [-s buffer size -b blocksize -l latency max size -c latency count]\n",
+	    progname);
+	fprintf(stderr, "\t-b Memory blocksize in Bytes <%d>\n", BLOCKSIZE);
+	fprintf(stderr, "\t-s Memory buffer size in Bytes <%d>\n", SIZE);
+	fprintf(stderr, "\t-l Latency test maximum buffer size in Bytes <%d>\n", SIZE * 2);
+	fprintf(stderr, "\t-c Latency count <%d>\n", LATBENCH_COUNT);
+	exit(EXIT_FAILURE);
+}
+
+int main(int argc, char *argv[])
+{
+	int ch;
+	int latbench_size = SIZE * 2, latbench_count = LATBENCH_COUNT;
+	size_t bufsize = SIZE;
+	int blocksize = BLOCKSIZE;
+	
+	progname = argv[0];
+	while ((ch = getopt(argc, argv, "hb:c:l:s:")) != -1) {
+		switch (ch) {
+		case 'b':
+		    blocksize = atoi(optarg);
+			break;
+		case 'c':
+		    latbench_count = atoi(optarg);
+			break;
+		case 'l':
+		    latbench_size = atoi(optarg);
+			break;
+		case 's':
+		    bufsize = atoi(optarg);
+			break;
+		case 'h':
+		    usage();
+		}
+	}
+
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
-    size_t bufsize = SIZE;
 #ifdef __linux__
     size_t fbsize = 0;
     int64_t *fbbuf = mmap_framebuffer(&fbsize);
-    fbsize = (fbsize / BLOCKSIZE) * BLOCKSIZE;
+    fbsize = (fbsize / blocksize) * blocksize;
 #endif
 
     printf("tinymembench v" VERSION " (simple benchmark for memory throughput and latency)\n");
@@ -497,11 +536,13 @@ int main(void)
 
     poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, bufsize,
                                             (void **)&dstbuf, bufsize,
-                                            (void **)&tmpbuf, BLOCKSIZE,
+                                            (void **)&tmpbuf, blocksize,
                                             NULL, 0);
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory bandwidth tests                                               ==\n");
+	printf("== size Bytes: %zu                                                ==\n", bufsize);
+	printf("== blocksize Bytes: %d                                                ==\n", blocksize);
     printf("==                                                                      ==\n");
     printf("== Note 1: 1MB = 1000000 bytes                                          ==\n");
     printf("== Note 2: Results for 'copy' tests show how many bytes can be          ==\n");
@@ -514,13 +555,13 @@ int main(void)
     printf("==         brackets                                                     ==\n");
     printf("==========================================================================\n\n");
 
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_benchmarks);
+    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, blocksize, " ", c_benchmarks);
     printf(" ---\n");
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", libc_benchmarks);
+    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, blocksize, " ", libc_benchmarks);
     bench_info *bi = get_asm_benchmarks();
     if (bi->f) {
         printf(" ---\n");
-        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
+        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, blocksize, " ", bi);
     }
 
 #ifdef __linux__
@@ -551,7 +592,7 @@ int main(void)
         srcbuf = fbbuf;
         if (bufsize > fbsize)
             bufsize = fbsize;
-        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
+        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, blocksize, " ", bi);
     }
 #endif
 
@@ -560,6 +601,8 @@ int main(void)
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory latency test                                                  ==\n");
+	printf("== latbench_size Bytes: %d                                       ==\n", latbench_size);
+	printf("== latbench_count: %d                                             ==\n", latbench_count);
     printf("==                                                                      ==\n");
     printf("== Average time is measured for random memory accesses in the buffers   ==\n");
     printf("== of different sizes. The larger is the buffer, the more significant   ==\n");
