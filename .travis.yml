@@ -4,7 +4,14 @@ matrix:
   include:
     - os: linux
       compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
       script:
+        - mkdir -p build
+        - cd build
+        - cmake ..
         - make
 
     - os: linux
@@ -15,8 +22,12 @@ matrix:
             - gcc-arm-linux-gnueabihf
             - libc6-dev-armhf-cross
             - qemu-user
+            - cmake
       script:
-        - CFLAGS="-O2 -mfpu=neon -g -static -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_C_FLAGS="-O2 -mfpu=neon -g -static -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" ..
+        - make
         - qemu-arm ./tinymembench
 
     - os: linux
@@ -28,8 +39,12 @@ matrix:
             - gcc-aarch64-linux-gnu
             - libc6-dev-arm64-cross
             - qemu-user
+            - cmake
       script:
-        - CFLAGS="-O2 -g -static -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_C_FLAGS="-O2 -g -static -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" ..
+        - make
         - qemu-aarch64 ./tinymembench
 
     - os: linux
@@ -40,8 +55,12 @@ matrix:
             - mingw32
             - mingw32-binutils
             - mingw32-runtime
+            - cmake
       script:
-        - CFLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_C_FLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" ..
+        - make
         - i586-mingw32msvc-objdump -d ./tinymembench
         # Fails because of https://sourceware.org/bugzilla/show_bug.cgi?id=12687
         # - wine ./tinymembench
@@ -56,6 +75,10 @@ matrix:
             - gcc-mingw-w64-i686
             - gcc-mingw-w64
             - wine
+            - cmake
       script:
-        - CFLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" make
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_C_FLAGS="-O2 -g -DMAXREPEATS=2 -DLATBENCH_COUNT=10000" ..
+        - make
         - wine ./tinymembench
