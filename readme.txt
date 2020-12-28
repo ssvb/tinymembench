@@ -20,3 +20,13 @@ Example of crosscompiling and running the benchmark on android device:
     $ CC=arm-linux-gnueabihf-gcc CFLAGS="-O2 -mcpu=cortex-a8 -static" make
     $ adb push tinymembench /data/local/tmp/tinymembench
     $ adb shell /data/local/tmp/tinymembench
+
+----------------
+
+This is a modified version which uses pthread to run some tests in parallel.
+
+The flags needed to link with pthread are added in Makefile.
+
+Example of running the test in parallel 4 threads:
+    $ ./tinymembench 4
+
