@@ -308,6 +308,7 @@ static bench_info c_benchmarks[] =
     { "C 2-pass copy", 1, aligned_block_copy },
     { "C 2-pass copy prefetched (32 bytes step)", 1, aligned_block_copy_pf32 },
     { "C 2-pass copy prefetched (64 bytes step)", 1, aligned_block_copy_pf64 },
+    { "C fetch", 0, aligned_block_fetch },
     { "C fill", 0, aligned_block_fill },
     { "C fill (shuffle within 16 byte blocks)", 0, aligned_block_fill_shuffle16 },
     { "C fill (shuffle within 32 byte blocks)", 0, aligned_block_fill_shuffle32 },

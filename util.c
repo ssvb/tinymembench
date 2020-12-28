@@ -211,6 +211,24 @@ void aligned_block_copy_pf64(int64_t * __restrict dst_,
     }
 }
 
+void aligned_block_fetch(int64_t * __restrict dst,
+                         int64_t * __restrict src_,
+                         int                  size)
+{
+    volatile int64_t *src = src_;
+    while ((size -= 64) >= 0)
+    {
+        *src++;
+        *src++;
+        *src++;
+        *src++;
+        *src++;
+        *src++;
+        *src++;
+        *src++;
+    }
+}
+
 void aligned_block_fill(int64_t * __restrict dst_,
                         int64_t * __restrict src,
                         int                  size)

@@ -1,3 +1,6 @@
+LDFLAGS ?= -pthread
+CFLAGS  ?= -march=native
+
 all: tinymembench
 
 ifdef WINDIR
