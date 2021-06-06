@@ -337,6 +337,7 @@ void *alloc_four_nonaliased_buffers(void **buf1_, int size1,
 
     ptr = buf = 
         (char *)malloc(size1 + size2 + size3 + size4 + 9 * ALIGN_PADDING);
+    if (!ptr) return ptr;
     memset(buf, 0xCC, size1 + size2 + size3 + size4 + 9 * ALIGN_PADDING);
 
     ptr = align_up(ptr, ALIGN_PADDING);
