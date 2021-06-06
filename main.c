@@ -503,6 +503,13 @@ int main(int argc, char *argv[])
 	    custom_size = SIZE_DEFAULT;
 	}
     }
+    if (argc > 2) {
+       latbench_count = atoi (argv[2]);
+       if ((latbench_count < 100) || (latbench_count > 100*LATBENCH_COUNT)) {
+           printf("WARNING: unexpected count specified, using default instead.\n");
+           latbench_count = LATBENCH_COUNT;
+       }
+    }
     latbench_size = custom_size * 2;
     bufsize = custom_size;
 
