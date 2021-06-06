@@ -40,7 +40,7 @@
 #include "asm-opt.h"
 #include "version.h"
 
-#define SIZE             (32 * 1024 * 1024)
+#define SIZE_DEFAULT     (32 * 1024 * 1024)
 #define BLOCKSIZE        2048
 #ifndef MAXREPEATS
 # define MAXREPEATS      10
@@ -480,12 +480,14 @@ int latency_bench(int size, int count, int use_hugepage)
     return 1;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    int latbench_size = SIZE * 2, latbench_count = LATBENCH_COUNT;
+    int latbench_size, latbench_count = LATBENCH_COUNT;
+    int custom_size = SIZE_DEFAULT;
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
-    size_t bufsize = SIZE;
+    size_t bufsize;
+    bench_info *bi;
 #ifdef __linux__
     size_t fbsize = 0;
     int64_t *fbbuf = mmap_framebuffer(&fbsize);
@@ -494,11 +496,25 @@ int main(void)
 
     printf("tinymembench v" VERSION " (simple benchmark for memory throughput and latency)\n");
 
+    if (argc > 1) {
+	custom_size = atoi (argv[1]);
+	if ((custom_size < 4096) || (custom_size > 16*SIZE_DEFAULT)) {
+	    printf("WARNING: unexpected size specified, using default instead.\n");
+	    custom_size = SIZE_DEFAULT;
+	}
+    }
+    latbench_size = custom_size * 2;
+    bufsize = custom_size;
 
     poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, bufsize,
                                             (void **)&dstbuf, bufsize,
                                             (void **)&tmpbuf, BLOCKSIZE,
                                             NULL, 0);
+    if (!poolbuf) {
+	printf("FATAL: memory allocation failed. Please override SIZE_DEFAULT (%ld bytes) on command line.\n", (long)SIZE_DEFAULT);
+	return 1;
+    }
+
     printf("\n");
     printf("==========================================================================\n");
     printf("== Memory bandwidth tests                                               ==\n");
@@ -517,7 +533,7 @@ int main(void)
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_benchmarks);
     printf(" ---\n");
     bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", libc_benchmarks);
-    bench_info *bi = get_asm_benchmarks();
+    bi = get_asm_benchmarks();
     if (bi->f) {
         printf(" ---\n");
         bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
