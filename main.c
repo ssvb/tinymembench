@@ -316,6 +316,13 @@ static bench_info c_benchmarks[] =
     { NULL, 0, NULL }
 };
 
+static bench_info c_unaligned_benchmarks[] =
+{
+    { "C fetch unaligned", 0, unaligned_block_fetch },
+    { "C fill unaligned", 0, unaligned_block_fill },
+    { NULL, 0, NULL }
+};
+
 static bench_info libc_benchmarks[] =
 {
     { "standard memcpy", 0, memcpy_wrapper },
@@ -668,7 +675,11 @@ int main(int argc, char *argv[])
     printf("==         brackets                                                     ==\n");
     printf("==========================================================================\n\n");
 
+#if 0
     bandwidth_bench(threads, dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_benchmarks);
+    printf(" ---\n");
+#endif
+    bandwidth_bench(threads, dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_unaligned_benchmarks);
     printf(" ---\n");
     bandwidth_bench(threads, dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", libc_benchmarks);
     bench_info *bi = get_asm_benchmarks();
