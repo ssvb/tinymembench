@@ -54,9 +54,18 @@ void aligned_block_fetch(int64_t * __restrict dst,
                          int64_t * __restrict src,
                          int                  size);
 
+void unaligned_block_fetch(int64_t * __restrict dst,
+                           int64_t * __restrict src,
+                           int                  size);
+
 void aligned_block_fill(int64_t * __restrict dst,
                         int64_t * __restrict src,
                         int                  size);
+
+void unaligned_block_fill(int64_t * __restrict dst,
+                          int64_t * __restrict src,
+                          int                  size);
+
 void aligned_block_fill_shuffle16(int64_t * __restrict dst,
                                   int64_t * __restrict src,
                                   int                  size);
