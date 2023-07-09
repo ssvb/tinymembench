@@ -1,3 +1,6 @@
+LDFLAGS ?= -pthread
+CFLAGS  ?= -march=native
+
 all: tinymembench
 
 ifdef WINDIR
@@ -5,7 +8,7 @@ ifdef WINDIR
 endif
 
 tinymembench: main.c util.o util.h asm-opt.h version.h asm-opt.o x86-sse2.o arm-neon.o mips-32.o aarch64-asm.o
-	${CC} -O2 ${CFLAGS} -o tinymembench main.c util.o asm-opt.o x86-sse2.o arm-neon.o mips-32.o aarch64-asm.o -lm
+	${CC} -O2 ${CFLAGS} ${LDFLAGS} -o tinymembench main.c util.o asm-opt.o x86-sse2.o arm-neon.o mips-32.o aarch64-asm.o -lm
 
 util.o: util.c util.h
 	${CC} -O2 ${CFLAGS} -c util.c

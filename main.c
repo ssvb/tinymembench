@@ -21,6 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#define _GNU_SOURCE
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -29,8 +30,11 @@
 #include <sys/time.h>
 
 #ifdef __linux__
+#include <pthread.h>
+#include <sched.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <semaphore.h>
 #include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
@@ -74,9 +78,99 @@ static void *mmap_framebuffer(size_t *fbsize)
     *fbsize = finfo.smem_len;
     return p;
 }
+
+struct f_data
+{
+    void (*func)(int64_t *, int64_t *, int);
+    int64_t *arg1;
+    int64_t *arg2;
+    int      arg3;
+};
+pthread_cond_t p_ready;
+pthread_cond_t p_start;
+pthread_mutex_t p_lock;
+pthread_t *p_worker = NULL;
+struct f_data *worker_data = NULL;
+int p_worker_not_ready;
+int p_workers_ready;
+
+void *thread_func(void *data)
+{
+    struct f_data *data_ptr = data;
+
+    pthread_mutex_lock(&p_lock);
+    --p_worker_not_ready;
+
+    if (p_worker_not_ready == 0)
+    {
+        pthread_cond_signal(&p_ready);
+    }
+    while (p_workers_ready != 1)
+    {
+        pthread_cond_wait(&p_start, &p_lock);
+    }
+    pthread_mutex_unlock(&p_lock);
+
+    (data_ptr->func)(data_ptr->arg1, data_ptr->arg2, data_ptr->arg3);
+
+    pthread_exit(NULL);
+}
+
+static void parallel_run(void)
+{
+    pthread_mutex_lock(&p_lock);
+    p_workers_ready = 1;
+    pthread_mutex_unlock(&p_lock);
+    pthread_cond_broadcast(&p_start);
+}
+
+static void parallel_init(int threads)
+{
+    int i;
+    pthread_attr_t attr;
+    cpu_set_t cpus;
+
+    pthread_cond_init(&p_ready, NULL);
+    pthread_cond_init(&p_start, NULL);
+    pthread_mutex_init(&p_lock, NULL);
+    p_worker_not_ready = threads;
+    p_workers_ready = 0;
+    pthread_attr_init(&attr);
+
+    if (!p_worker || !worker_data)
+    {
+        p_worker = (pthread_t *)malloc(threads * sizeof(pthread_t));
+        worker_data = (struct f_data *)malloc(threads * sizeof(struct f_data));
+    }
+    if (!p_worker || !worker_data)
+    {
+        printf("malloc failed\n");
+        return;
+    }
+
+    for (i = 0; i < threads; ++i)
+    {
+#if 1
+        CPU_ZERO(&cpus);
+        CPU_SET(i, &cpus);
+        pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpus);
+        pthread_create(p_worker + i, &attr, thread_func, worker_data + i);
+#else
+        pthread_create(p_worker + i, NULL, thread_func, worker_data + i);
+#endif
+    }
+
+    pthread_mutex_lock(&p_lock);
+    while (p_worker_not_ready != 0)
+    {
+        pthread_cond_wait(&p_ready, &p_lock);
+    }
+    pthread_mutex_unlock(&p_lock);
+}
 #endif
 
-static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
+static double bandwidth_bench_helper(int threads,
+                                     int64_t *dstbuf, int64_t *srcbuf,
                                      int64_t *tmpbuf,
                                      int size, int blocksize,
                                      const char *indent_prefix,
@@ -85,19 +179,34 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
                                      const char *description)
 {
     int i, j, loopcount, innerloopcount, n;
-    double t1, t2;
+    double t, t1, t2;
     double speed, maxspeed;
     double s, s0, s1, s2;
+    int pt;
 
     /* do up to MAXREPEATS measurements */
-    s = s0 = s1 = s2 = 0;
-    maxspeed   = 0;
+    s = s0 = s1 = s2 = 0.0;
+    maxspeed = 0.0;
     for (n = 0; n < MAXREPEATS; n++)
     {
+#if 1
+        parallel_init(threads);
+        for (pt = 0; pt < threads; ++pt)
+        {
+            (worker_data + pt)->func = f;
+            (worker_data + pt)->arg1 = dstbuf + size * pt / sizeof(int64_t);
+            (worker_data + pt)->arg2 = srcbuf + size * pt / sizeof(int64_t);
+            (worker_data + pt)->arg3 = size;
+        }
+        parallel_run();
+        for (pt = 0; pt < threads; ++pt)
+            pthread_join(p_worker[pt], NULL);
+#else
         f(dstbuf, srcbuf, size);
+#endif
         loopcount = 0;
         innerloopcount = 1;
-        t1 = gettime();
+        t = 0.0;
         do
         {
             loopcount += innerloopcount;
@@ -105,33 +214,55 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
             {
                 for (i = 0; i < innerloopcount; i++)
                 {
+                    t1 = gettime();
                     for (j = 0; j < size; j += blocksize)
-                        {
+                    {
                         f(tmpbuf, srcbuf + j / sizeof(int64_t), blocksize);
                         f(dstbuf + j / sizeof(int64_t), tmpbuf, blocksize);
                     }
+                    t2 = gettime();
+                    t += t2 - t1;
                 }
             }
             else
             {
                 for (i = 0; i < innerloopcount; i++)
                 {
+#if 1
+                    parallel_init(threads);
+                    for (pt = 0; pt < threads; ++pt)
+                    {
+                        (worker_data + pt)->func = f;
+                        (worker_data + pt)->arg1 = dstbuf + size * pt / sizeof(int64_t);
+                        (worker_data + pt)->arg2 = srcbuf + size * pt / sizeof(int64_t);
+                        (worker_data + pt)->arg3 = size;
+                    }
+
+                    t1 = gettime();
+                    parallel_run();
+                    for (pt = 0; pt < threads; ++pt)
+                        pthread_join(p_worker[pt], NULL);
+                    t2 = gettime();
+#else
+                    t1 = gettime();
                     f(dstbuf, srcbuf, size);
+                    t2 = gettime();
+#endif
+                    t += t2 - t1;
                 }
             }
             innerloopcount *= 2;
-            t2 = gettime();
-        } while (t2 - t1 < 0.5);
-        speed = (double)size * loopcount / (t2 - t1) / 1000000.;
+        } while (t < 0.5);
+        speed = (double)size * (use_tmpbuf ? 1 : threads) * loopcount / t / 1000000.;
 
-        s0 += 1;
+        s0 += 1.;
         s1 += speed;
         s2 += speed * speed;
 
         if (speed > maxspeed)
             maxspeed = speed;
 
-        if (s0 > 2)
+        if (s0 > 2.)
         {
             s = sqrt((s0 * s2 - s1 * s1) / (s0 * (s0 - 1)));
             if (s < maxspeed / 1000.)
@@ -141,13 +272,18 @@ static double bandwidth_bench_helper(int64_t *dstbuf, int64_t *srcbuf,
 
     if (maxspeed > 0 && s / maxspeed * 100. >= 0.1)
     {
-        printf("%s%-52s : %8.1f MB/s (%.1f%%)\n", indent_prefix, description,
-                                               maxspeed, s / maxspeed * 100.);
+        printf("%s%-52s : %8.1f MB/s (%.1f%%)",
+               indent_prefix, description, maxspeed, s / maxspeed * 100.);
     }
     else
     {
-        printf("%s%-52s : %8.1f MB/s\n", indent_prefix, description, maxspeed);
+        printf("%s%-52s : %8.1f MB/s       ", indent_prefix, description, maxspeed);
     }
+    if (use_tmpbuf || threads == 1)
+        printf("\n");
+    else
+        printf(" @ %d thread%c\n", (use_tmpbuf ? 1 : threads), (use_tmpbuf || threads == 1 ? ' ' : 's'));
+
     return maxspeed;
 }
 
@@ -172,10 +308,20 @@ static bench_info c_benchmarks[] =
     { "C 2-pass copy", 1, aligned_block_copy },
     { "C 2-pass copy prefetched (32 bytes step)", 1, aligned_block_copy_pf32 },
     { "C 2-pass copy prefetched (64 bytes step)", 1, aligned_block_copy_pf64 },
+    { "C fetch", 0, aligned_block_fetch },
+    { "C fetch unaligned", 0, unaligned_block_fetch },
     { "C fill", 0, aligned_block_fill },
+    { "C fill unaligned", 0, unaligned_block_fill },
     { "C fill (shuffle within 16 byte blocks)", 0, aligned_block_fill_shuffle16 },
     { "C fill (shuffle within 32 byte blocks)", 0, aligned_block_fill_shuffle32 },
     { "C fill (shuffle within 64 byte blocks)", 0, aligned_block_fill_shuffle64 },
+    { NULL, 0, NULL }
+};
+
+static bench_info c_unaligned_benchmarks[] =
+{
+    { "C fetch unaligned", 0, unaligned_block_fetch },
+    { "C fill unaligned", 0, unaligned_block_fill },
     { NULL, 0, NULL }
 };
 
@@ -186,13 +332,16 @@ static bench_info libc_benchmarks[] =
     { NULL, 0, NULL }
 };
 
-void bandwidth_bench(int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
+void bandwidth_bench(int threads,
+                     int64_t *dstbuf, int64_t *srcbuf, int64_t *tmpbuf,
                      int size, int blocksize, const char *indent_prefix,
                      bench_info *bi)
 {
     while (bi->f)
     {
-        bandwidth_bench_helper(dstbuf, srcbuf, tmpbuf, size, blocksize,
+        bandwidth_bench_helper(threads,
+                               dstbuf, srcbuf, tmpbuf,
+                               size, blocksize,
                                indent_prefix, bi->use_tmpbuf,
                                bi->f,
                                bi->description);
@@ -378,8 +527,8 @@ static uint32_t rand32()
 int latency_bench(int size, int count, int use_hugepage)
 {
     double t, t2, t_before, t_after, t_noaccess, t_noaccess2;
-    double xs, xs0, xs1, xs2;
-    double ys, ys0, ys1, ys2;
+    double xs, xs1, xs2;
+    double ys, ys1, ys2;
     double min_t, min_t2;
     int nbits, n;
     char *buffer, *buffer_alloc;
@@ -480,24 +629,38 @@ int latency_bench(int size, int count, int use_hugepage)
     return 1;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
     int latbench_size = SIZE * 2, latbench_count = LATBENCH_COUNT;
     int64_t *srcbuf, *dstbuf, *tmpbuf;
     void *poolbuf;
     size_t bufsize = SIZE;
+    int threads;
 #ifdef __linux__
     size_t fbsize = 0;
     int64_t *fbbuf = mmap_framebuffer(&fbsize);
     fbsize = (fbsize / BLOCKSIZE) * BLOCKSIZE;
 #endif
 
-    printf("tinymembench v" VERSION " (simple benchmark for memory throughput and latency)\n");
+    printf("tinymembench-pthread v" VERSION " (simple benchmark for memory throughput and latency)\n");
 
+    if (argc == 1)
+    {
+        threads = 1;
+        printf("Single thread test\n");
+    }
+    else
+    {
+        int total_cpu;
 
-    poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, bufsize,
-                                            (void **)&dstbuf, bufsize,
-                                            (void **)&tmpbuf, BLOCKSIZE,
+        total_cpu = sysconf(_SC_NPROCESSORS_ONLN);
+        threads = atoi(argv[1]);
+        printf("%d threads on %d CPU\n", threads, total_cpu);
+    }
+
+    poolbuf = alloc_four_nonaliased_buffers((void **)&srcbuf, bufsize * threads,
+                                            (void **)&dstbuf, bufsize * threads,
+                                            (void **)&tmpbuf, BLOCKSIZE * threads,
                                             NULL, 0);
     printf("\n");
     printf("==========================================================================\n");
@@ -514,13 +677,17 @@ int main(void)
     printf("==         brackets                                                     ==\n");
     printf("==========================================================================\n\n");
 
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_benchmarks);
+#if 0
+    bandwidth_bench(threads, dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_benchmarks);
     printf(" ---\n");
-    bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", libc_benchmarks);
+#endif
+    bandwidth_bench(threads, dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", c_unaligned_benchmarks);
+    printf(" ---\n");
+    bandwidth_bench(threads, dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", libc_benchmarks);
     bench_info *bi = get_asm_benchmarks();
     if (bi->f) {
         printf(" ---\n");
-        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
+        bandwidth_bench(threads, dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
     }
 
 #ifdef __linux__
@@ -551,7 +718,7 @@ int main(void)
         srcbuf = fbbuf;
         if (bufsize > fbsize)
             bufsize = fbsize;
-        bandwidth_bench(dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
+        bandwidth_bench(1, dstbuf, srcbuf, tmpbuf, bufsize, BLOCKSIZE, " ", bi);
     }
 #endif
 
